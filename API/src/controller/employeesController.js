@@ -154,6 +154,39 @@ const employeesController = {
                 });
             }
 
+            const employee = await prisma.employees.findUnique({
+                where: { id: Number(id) }
+            });
+
+            if (employee.role !== role) {
+                if (employee.role === "INSPECTOR") {
+                    
+                    await prisma.inspector.deleteMany({
+                        where: { id: Number(id) }
+                    });
+
+                    await prisma.maintainer.create({
+                        data: {
+                            id: Number(id)
+                        }
+                    });
+
+                } else if (employee.role === "MAINTAINER") {
+
+                    await prisma.maintainer.deleteMany({
+                        where: { id: Number(id) }
+                    });
+
+                    await prisma.inspector.create({
+                        data: {
+                            id: Number(id)
+                        }
+                    });
+                }
+            }
+
+
+
             await prisma.employees.update({
                 data: {
                     name,
