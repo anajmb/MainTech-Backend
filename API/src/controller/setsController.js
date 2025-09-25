@@ -8,7 +8,7 @@ const stesController = {
 
             const { name, machineId, subsets } = req.body;
 
-            if (!name || !machineId) {
+            if (!name) {
                 return res.status(400).json({
                     msg: "Name and machineId are required"
                 });
@@ -17,7 +17,6 @@ const stesController = {
             const set = await prisma.sets.create({
                 data: {
                     name,
-                    machineId,
                     subsets: {
                         connect: subsets?.map(id => ({ id })) || []
                     }

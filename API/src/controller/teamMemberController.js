@@ -16,6 +16,7 @@ const teamMemberController = {
             });
 
             return res.status(201).json({ msg: "Membro adicionado ao time", member });
+
         } catch (error) {
             if (error.code === 'P2002') {
                 return res.status(400).json({ msg: "Este membro já está neste time" });
