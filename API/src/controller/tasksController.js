@@ -30,14 +30,19 @@ const tasksController = {
     },
     getAll: async (req, res) => {
         try {
-            const tasks = await prisma.tasks.findMany({
+            const tasks = await prisma.task.findMany({
                 include: {
-                    inspector: true,
+                    inspector: {
+                        include: {
+                            person: true
+                        }
+                    },
                     machine: true
                 }
             });
 
             return res.status(200).json(tasks);
+
         } catch (error) {
 
             console.log(error);

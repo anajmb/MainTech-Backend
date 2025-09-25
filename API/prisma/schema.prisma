@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -98,11 +98,11 @@ model Task {
   inspector   Inspector @relation(fields: [inspectorId], references: [id])
   inspectorId Int
 
-  machine     Machine?   @relation(fields: [machineId], references: [id])
-  machineId   Int?
+  machine   Machine? @relation(fields: [machineId], references: [id])
+  machineId Int?
 
-  createDate  DateTime  @default(now())
-  updateDate  DateTime  @updatedAt
+  createDate DateTime @default(now())
+  updateDate DateTime @updatedAt
 }
 
 model Machine {
@@ -110,7 +110,7 @@ model Machine {
   name        String
   description String
   location    String
-  sets        Sets[]   // Uma máquina tem vários sets
+  sets        Sets[] // Uma máquina tem vários sets
   tasks       Task[]
   createDate  DateTime @default(now())
   updateDate  DateTime @updatedAt
@@ -119,55 +119,21 @@ model Machine {
 model Sets {
   id         Int       @id @default(autoincrement())
   name       String
-  machine    Machine   @relation(fields: [machineId], references: [id])
-  machineId  Int
+  machine    Machine?  @relation(fields: [machineId], references: [id])
+  machineId  Int?
   subsets    Subsets[] @relation("SetToSubsets")
   createDate DateTime  @default(now())
   updateDate DateTime  @updatedAt
 }
 
 model Subsets {
-  id      Int     @id @default(autoincrement())
-  name    String
+  id   Int    @id @default(autoincrement())
+  name String
 
-  sets    Sets[]  @relation("SetToSubsets") 
+  sets Sets[] @relation("SetToSubsets")
 
-  changes ChangeSubsets[]
-  repairs RepairSubsets[]
-}
-
-model Change {
-  id Int @id @default(autoincrement())
-
-  subsets ChangeSubsets[]
-}
-
-model Repair {
-  id Int @id @default(autoincrement())
-
-  subsets RepairSubsets[]
-}
-
-// Relação muitos-para-muitos entre Change e Subsets
-model ChangeSubsets {
-  changeId Int
-  subsetId Int
-
-  change Change  @relation(fields: [changeId], references: [id])
-  subset Subsets @relation(fields: [subsetId], references: [id])
-
-  @@id([changeId, subsetId])
-}
-
-// Relação muitos-para-muitos entre Repair e Subsets
-model RepairSubsets {
-  repairId Int
-  subsetId Int
-
-  repair Repair  @relation(fields: [repairId], references: [id])
-  subset Subsets @relation(fields: [subsetId], references: [id])
-
-  @@id([repairId, subsetId])
+  changes Boolean @default(false)
+  repairs Boolean @default(false)
 }
 
 enum Role {

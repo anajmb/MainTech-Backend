@@ -5,7 +5,7 @@ const subSetsController = {
 
     create: async (req, res) => {
         try {
-            const { name } = req.body;
+            const { name, changes, repairs } = req.body;
 
             if (!name) {
                 return res.status(400).json({
@@ -14,7 +14,11 @@ const subSetsController = {
             }
 
             const subset = await prisma.subsets.create({
-                data: { name }
+                data: {
+                    name,
+                    changes,
+                    repairs
+                }
             });
 
             return res.status(201).json({
@@ -32,7 +36,7 @@ const subSetsController = {
         try {
             const subsets = await prisma.subsets.findMany({
                 include: { sets: true }
-        });
+            });
 
             return res.status(200).json(subsets);
         } catch (error) {
@@ -63,7 +67,7 @@ const subSetsController = {
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { name } = req.body;
+            const { name, changes, repairs } = req.body;
 
             if (!name) {
                 return res.status(400).json({
@@ -73,7 +77,11 @@ const subSetsController = {
 
             const subset = await prisma.subsets.update({
                 where: { id: Number(id) },
-                data: { name }
+                data: {
+                    name,
+                    changes,
+                    repairs
+                }
             });
 
             return res.status(200).json({
