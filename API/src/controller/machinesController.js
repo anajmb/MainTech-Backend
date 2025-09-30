@@ -13,16 +13,20 @@ const machinesController = {
                 });
             }
 
+            // Garante que sets e tasks sejam arrays
+            const setsArray = Array.isArray(sets) ? sets : sets ? [sets] : [];
+            const tasksArray = Array.isArray(tasks) ? tasks : tasks ? [tasks] : [];
+
             const machine = await prisma.machine.create({
                 data: {
                     name,
                     description,
                     location,
                     sets: {
-                        connect: sets?.map(id => ({ id })) || []
+                        connect: setsArray.map(id => ({ id }))
                     },
                     tasks: {
-                        connect: tasks?.map(id => ({ id })) || []
+                        connect: tasksArray.map(id => ({ id }))
                     }
                 }
             });
