@@ -27,9 +27,18 @@ const machinesController = {
                 }
             });
 
+            const qrData = {
+                id: machine.id,
+                name: machine.name,
+                location: machine.location
+            };
+
+            const qrCode = await QRCode.toDataURL(JSON.stringify(qrData));
+
             return res.status(201).json({
                 msg: "Machine created successfully",
-                id: machine.id
+                id: machine.id,
+                qrCode
             });
 
         } catch (error) {

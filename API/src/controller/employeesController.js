@@ -160,7 +160,7 @@ const employeesController = {
 
             if (employee.role !== role) {
                 if (employee.role === "INSPECTOR") {
-                    
+
                     await prisma.inspector.deleteMany({
                         where: { id: Number(id) }
                     });
