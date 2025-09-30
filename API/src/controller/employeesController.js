@@ -94,7 +94,8 @@ const employeesController = {
             id: employeeFind.id,
             cpf: employeeFind.cpf,
             email: employeeFind.email,
-            name: employeeFind.name
+            name: employeeFind.name,
+            role: employeeFind.role
         };
 
         const token = jwt.sign(payload, "SGNldE5pYW0=", {
