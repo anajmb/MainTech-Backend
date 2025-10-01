@@ -110,7 +110,7 @@ model Machine {
   name        String
   description String
   location    String
-  sets        Sets[] // Uma máquina tem vários sets
+  sets        Sets[]  @relation("SetsOnMachine")
   tasks       Task[]
   createDate  DateTime @default(now())
   updateDate  DateTime @updatedAt
@@ -119,7 +119,7 @@ model Machine {
 model Sets {
   id         Int       @id @default(autoincrement())
   name       String
-  machine    Machine?  @relation(fields: [machineId], references: [id])
+  machine    Machine[]  @relation("SetsOnMachine")
   machineId  Int?
   subsets    Subsets[] @relation("SetToSubsets")
   createDate DateTime  @default(now())
