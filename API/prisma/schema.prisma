@@ -92,18 +92,18 @@ model Maintainer {
   updateDate DateTime @updatedAt
 }
 
-model Task {
-  id          Int       @id @default(autoincrement())
-  title       String
-  inspector   Inspector @relation(fields: [inspectorId], references: [id])
-  inspectorId Int
+  model Task {
+    id          Int       @id @default(autoincrement())
+    title       String
+    inspector   Inspector @relation(fields: [inspectorId], references: [id])
+    inspectorId Int
 
-  machine   Machine? @relation(fields: [machineId], references: [id])
-  machineId Int?
+    machine   Machine? @relation(fields: [machineId], references: [id])
+    machineId Int?
 
-  createDate DateTime @default(now())
-  updateDate DateTime @updatedAt
-}
+    createDate DateTime @default(now())
+    updateDate DateTime @updatedAt
+  }
 
 model Machine {
   id          Int      @id @default(autoincrement())
