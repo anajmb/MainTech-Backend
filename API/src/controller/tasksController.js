@@ -37,8 +37,7 @@ const tasksController = {
                             person: true
                         }
                     },
-                    machine: true,
-                    updateDate: true
+                    machine: true
                 }
             });
 
