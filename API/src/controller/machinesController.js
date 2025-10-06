@@ -40,11 +40,16 @@ const machinesController = {
 
             const qrCode = await QRCode.toDataURL(JSON.stringify(qrData));
 
+            const updatedMachine = await prisma.machine.update({
+                where: { id: machine.id },
+                data: { qrCode }
+            });
+            
             return res.status(201).json({
                 msg: "Machine created successfully",
-                id: machine.id,
-                qrCode
+                machine: updatedMachine
             });
+
 
         } catch (error) {
             console.log(error);
