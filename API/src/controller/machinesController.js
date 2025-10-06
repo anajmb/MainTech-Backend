@@ -14,42 +14,27 @@ const machinesController = {
                 });
             }
 
-            // Garante que sets e tasks sejam arrays
             const setsArray = Array.isArray(sets) ? sets : sets ? [sets] : [];
             const tasksArray = Array.isArray(tasks) ? tasks : tasks ? [tasks] : [];
+
+            const qrData = { name, description, location };
+            const qrCode = await QRCode.toDataURL(JSON.stringify(qrData));
 
             const machine = await prisma.machine.create({
                 data: {
                     name,
                     description,
                     location,
-                    sets: {
-                        connect: setsArray.map(id => ({ id }))
-                    },
-                    tasks: {
-                        connect: tasksArray.map(id => ({ id }))
-                    }
+                    qrCode, 
+                    sets: { connect: setsArray.map(id => ({ id })) },
+                    tasks: { connect: tasksArray.map(id => ({ id })) }
                 }
             });
 
-            const qrData = {
-                id: machine.id,
-                name: machine.name,
-                location: machine.location
-            };
-
-            const qrCode = await QRCode.toDataURL(JSON.stringify(qrData));
-
-            const updatedMachine = await prisma.machine.update({
-                where: { id: machine.id },
-                data: { qrCode }
-            });
-            
             return res.status(201).json({
                 msg: "Machine created successfully",
-                machine: updatedMachine
+                machine
             });
-
 
         } catch (error) {
             console.log(error);
