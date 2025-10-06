@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 const tasksController = {
     create: async (req, res) => {
         try {
-            const { title, inspectorId, machineId } = req.body;
+            const { title, inspectorId, machineId, description, expirationDate } = req.body;
 
             if (!title || !inspectorId) {
                 return res.status(400).json({
@@ -13,7 +13,7 @@ const tasksController = {
             }
 
             const task = await prisma.task.create({
-                data: { title, inspectorId, machineId: machineId || null }
+                data: { title, inspectorId, machineId: machineId || null, description, expirationDate }
             });
 
             return res.status(201).json({
@@ -37,7 +37,9 @@ const tasksController = {
                             person: true
                         }
                     },
-                    machine: true
+                    machine: true,
+                    description,
+                    expirationDate
                 }
             });
 
@@ -61,7 +63,9 @@ const tasksController = {
                 include: {
                     inspector: true,
                     machine: true
-                }
+                },
+                description,
+                expirationDate
             })
 
             return res.status(200).json(task);
@@ -76,7 +80,7 @@ const tasksController = {
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { title, inspectorId, machineId } = req.body;
+            const { title, inspectorId, machineId, description, expirationDate } = req.body;
 
             if (!title || !inspectorId) {
                 return res.status(400).json({
@@ -86,7 +90,7 @@ const tasksController = {
 
             const set = await prisma.tasks.update({
                 where: { id: Number(id) },
-                data: { title, inspectorId, machineId: machineId || null }
+                data: { title, inspectorId, machineId: machineId || null, description, expirationDate }
             });
 
             return res.status(200).json({
@@ -103,10 +107,10 @@ const tasksController = {
     },
     delete: async (req, res) => {
         try {
-            const {id} = req.params;
+            const { id } = req.params;
 
             await prisma.tasks.delete({
-                where: {id: Number(id)}
+                where: { id: Number(id) }
             });
 
             return res.status(200).json({

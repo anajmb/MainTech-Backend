@@ -92,26 +92,30 @@ model Maintainer {
   updateDate DateTime @updatedAt
 }
 
-  model Task {
-    id          Int       @id @default(autoincrement())
-    title       String
-    inspector   Inspector @relation(fields: [inspectorId], references: [id])
-    inspectorId Int
+model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String 
+  inspector   Inspector @relation(fields: [inspectorId], references: [id])
+  inspectorId Int
 
-    machine   Machine? @relation(fields: [machineId], references: [id])
-    machineId Int?
+  machine   Machine? @relation(fields: [machineId], references: [id])
+  machineId Int?
 
-    createDate DateTime @default(now())
-    updateDate DateTime @updatedAt
-  }
+  expirationDate DateTime
+
+  createDate DateTime @default(now())
+  updateDate DateTime @updatedAt
+}
 
 model Machine {
   id          Int      @id @default(autoincrement())
   name        String
-  description String
+  description String 
   location    String
-  sets        Sets[]  @relation("SetsOnMachine")
+  sets        Sets[]   @relation("SetsOnMachine")
   tasks       Task[]
+  qrCode      String?
   createDate  DateTime @default(now())
   updateDate  DateTime @updatedAt
 }
@@ -119,7 +123,7 @@ model Machine {
 model Sets {
   id         Int       @id @default(autoincrement())
   name       String
-  machine    Machine[]  @relation("SetsOnMachine")
+  machine    Machine[] @relation("SetsOnMachine")
   machineId  Int?
   subsets    Subsets[] @relation("SetToSubsets")
   createDate DateTime  @default(now())
