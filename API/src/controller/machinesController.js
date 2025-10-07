@@ -26,7 +26,7 @@ const machinesController = {
                     name,
                     description,
                     location,
-                    qrCode, 
+                    qrCode,
                     sets: { connect: setsArray.map(id => ({ id })) },
                     tasks: { connect: tasksArray.map(id => ({ id })) }
                 },
@@ -108,10 +108,13 @@ const machinesController = {
                 });
             }
 
+            const qrData = { id, name, description, location };
+            const qrCode = await QRCode.toDataURL(JSON.stringify(qrData));
+
             const machine = await prisma.machine.update({
                 where: { id: Number(id) },
                 data: {
-                    name, description, location,
+                    name, description, location, qrCode,
                     sets: {
                         set: sets?.map(id => ({ id })) || []
                     },
