@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -22,9 +16,9 @@ model Admins {
   phone      String
   birthDate  DateTime
   teamId     Int
-  team       AdiminTeam @relation(fields: [teamId], references: [id])
   createDate DateTime   @default(now())
   updateDate DateTime   @updatedAt
+  team       AdiminTeam @relation(fields: [teamId], references: [id])
 }
 
 model AdiminTeam {
@@ -40,104 +34,95 @@ model Team {
   id          Int          @id @default(autoincrement())
   name        String
   description String
-  members     TeamMember[]
   createDate  DateTime     @default(now())
   updateDate  DateTime     @updatedAt
+  members     TeamMember[]
 }
 
 model Employees {
-  id         Int      @id @default(autoincrement())
-  name       String
-  cpf        String   @unique
-  email      String   @unique
-  phone      String
-  password   String
-  birthDate  DateTime
-  role       Role
-  createDate DateTime @default(now())
-  updateDate DateTime @updatedAt
-
+  id          Int          @id @default(autoincrement())
+  name        String
+  cpf         String       @unique
+  email       String       @unique
+  phone       String
+  password    String
+  birthDate   DateTime
+  role        Role
+  createDate  DateTime     @default(now())
+  updateDate  DateTime     @updatedAt
   inspector   Inspector?
   maintainer  Maintainer?
   memberships TeamMember[]
 }
 
 model TeamMember {
-  id       Int       @id @default(autoincrement())
-  team     Team      @relation(fields: [teamId], references: [id])
-  teamId   Int
-  person   Employees @relation(fields: [personId], references: [id])
-  personId Int
-
-  createDate DateTime @default(now())
-  updateDate DateTime @updatedAt
+  id         Int       @id @default(autoincrement())
+  teamId     Int
+  personId   Int
+  createDate DateTime  @default(now())
+  updateDate DateTime  @updatedAt
+  person     Employees @relation(fields: [personId], references: [id])
+  team       Team      @relation(fields: [teamId], references: [id])
 
   @@unique([teamId, personId])
 }
 
 model Inspector {
-  id     Int       @id
-  person Employees @relation(fields: [id], references: [id])
-  tasks  Task[]
-
-  createDate DateTime @default(now())
-  updateDate DateTime @updatedAt
+  id         Int       @id
+  createDate DateTime  @default(now())
+  updateDate DateTime  @updatedAt
+  person     Employees @relation(fields: [id], references: [id])
+  tasks      Task[]
 }
 
 model Maintainer {
-  id     Int       @id
-  person Employees @relation(fields: [id], references: [id])
-
-  createDate DateTime @default(now())
-  updateDate DateTime @updatedAt
+  id         Int       @id
+  createDate DateTime  @default(now())
+  updateDate DateTime  @updatedAt
+  person     Employees @relation(fields: [id], references: [id])
 }
 
 model Task {
-  id          Int       @id @default(autoincrement())
-  title       String
-  description String 
-  inspector   Inspector @relation(fields: [inspectorId], references: [id])
-  inspectorId Int
-
-  machine   Machine? @relation(fields: [machineId], references: [id])
-  machineId Int?
-
+  id             Int       @id @default(autoincrement())
+  title          String
+  description    String
+  inspectorId    Int
+  machineId      Int?
   expirationDate DateTime
-
-  createDate DateTime @default(now())
-  updateDate DateTime @updatedAt
+  createDate     DateTime  @default(now())
+  updateDate     DateTime  @updatedAt
+  inspector      Inspector @relation(fields: [inspectorId], references: [id])
+  machine        Machine?  @relation(fields: [machineId], references: [id])
 }
 
 model Machine {
   id          Int      @id @default(autoincrement())
   name        String
-  description String 
+  description String
   location    String
-  sets        Sets[]   @relation("SetsOnMachine")
-  tasks       Task[]
-  qrCode      String?
+  qrCode      String
   createDate  DateTime @default(now())
   updateDate  DateTime @updatedAt
+  tasks       Task[]
+  sets        Sets[]   @relation("SetsOnMachine")
 }
 
 model Sets {
   id         Int       @id @default(autoincrement())
   name       String
-  machine    Machine[] @relation("SetsOnMachine")
   machineId  Int?
-  subsets    Subsets[] @relation("SetToSubsets")
   createDate DateTime  @default(now())
   updateDate DateTime  @updatedAt
+  subsets    Subsets[] @relation("SetToSubsets")
+  machine    Machine[] @relation("SetsOnMachine")
 }
 
 model Subsets {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  sets Sets[] @relation("SetToSubsets")
-
+  id      Int     @id @default(autoincrement())
+  name    String
   changes Boolean @default(false)
   repairs Boolean @default(false)
+  sets    Sets[]  @relation("SetToSubsets")
 }
 
 enum Role {
