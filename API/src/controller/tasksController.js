@@ -58,7 +58,7 @@ const tasksController = {
         try {
             const { id } = req.params;
 
-            const task = await prisma.tasks.findUnique({
+            const task = await prisma.task.findUnique({
                 where: { id: parseInt(id) },
                 include: {
                     inspector: true,
@@ -88,7 +88,7 @@ const tasksController = {
                 });
             }
 
-            const set = await prisma.tasks.update({
+            const set = await prisma.task.update({
                 where: { id: Number(id) },
                 data: { title, inspectorId, machineId: machineId || null, description, expirationDate }
             });
