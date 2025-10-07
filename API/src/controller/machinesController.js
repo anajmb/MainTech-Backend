@@ -15,21 +15,18 @@ const machinesController = {
                 });
             }
 
-            // Garante que sets e tasks sejam arrays
             const setsArray = Array.isArray(sets) ? sets : [sets];
             const tasksArray = tasks ? (Array.isArray(tasks) ? tasks : [tasks]) : [];
 
-            // Gera o QR code antes de salvar
-            const qrData = { name, description, location };
+            const qrData = { id, name, description, location };
             const qrCode = await QRCode.toDataURL(JSON.stringify(qrData));
 
-            // Cria a máquina já com QR code
             const machine = await prisma.machine.create({
                 data: {
                     name,
                     description,
                     location,
-                    qrCode, // já salva direto
+                    qrCode, 
                     sets: { connect: setsArray.map(id => ({ id })) },
                     tasks: { connect: tasksArray.map(id => ({ id })) }
                 },
