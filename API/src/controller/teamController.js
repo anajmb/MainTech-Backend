@@ -53,7 +53,14 @@ const teamController = {
         try {
             const { id } = req.params;
             const team = await prisma.team.findUnique({
-                where: { id: Number(id) }
+                where: { id: Number(id) },
+                include: {
+                    members: {
+                        include: {
+                            person: true 
+                        }
+                    }
+                }
             });
 
             if (!team) {
