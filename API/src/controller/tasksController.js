@@ -31,7 +31,16 @@ const tasksController = {
     },
     getAll: async (req, res) => {
         try {
+            const { status } = req.query;
+
+            const whereClause = {};
+
+            if (status) {
+                whereClause.status = status; 
+            }
+
             const tasks = await prisma.task.findMany({
+                where: whereClause, 
                 include: {
                     inspector: {
                         include: {
@@ -45,7 +54,6 @@ const tasksController = {
             return res.status(200).json(tasks);
 
         } catch (error) {
-
             console.log(error);
             return res.status(500).json({
                 msg: "Internal server error",
@@ -63,8 +71,6 @@ const tasksController = {
                     inspector: true,
                     machine: true
                 },
-                description,
-                expirationDate
             })
 
             return res.status(200).json(task);
@@ -109,7 +115,7 @@ const tasksController = {
         try {
             const { id } = req.params;
 
-            await prisma.tasks.delete({
+            await prisma.task.delete({
                 where: { id: Number(id) }
             });
 
