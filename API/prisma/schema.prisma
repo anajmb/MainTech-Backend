@@ -88,7 +88,7 @@ model Task {
   description    String
   inspectorId    Int
   machineId      Int?
-  status         TaskStatus @default(PENDING)
+  status         TaskStatus 
   expirationDate DateTime
   createDate     DateTime  @default(now())
   updateDate     DateTime  @updatedAt
