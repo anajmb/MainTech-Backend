@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 const tasksController = {
     create: async (req, res) => {
         try {
-            const { title, inspectorId, machineId, description, expirationDate } = req.body;
+            const { title, inspectorId, machineId, status, description, expirationDate } = req.body;
 
             if (!title || !inspectorId) {
                 return res.status(400).json({
@@ -13,7 +13,7 @@ const tasksController = {
             }
 
             const task = await prisma.task.create({
-                data: { title, inspectorId, machineId: machineId || null, description, expirationDate }
+                data: { title, inspectorId, machineId: machineId || null, status : status || "PEDING" ,description, expirationDate }
             });
 
             return res.status(201).json({
@@ -78,7 +78,7 @@ const tasksController = {
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { title, inspectorId, machineId, description, expirationDate } = req.body;
+            const { title, inspectorId, machineId, status, description, expirationDate } = req.body;
 
             if (!title || !inspectorId) {
                 return res.status(400).json({
@@ -88,7 +88,7 @@ const tasksController = {
 
             const set = await prisma.task.update({
                 where: { id: Number(id) },
-                data: { title, inspectorId, machineId: machineId || null, description, expirationDate }
+                data: { title, inspectorId, machineId: machineId || null, status, description, expirationDate }
             });
 
             return res.status(200).json({
@@ -118,7 +118,7 @@ const tasksController = {
 
             console.log(error);
             return res.status(500).json({
-                msg: "Internal server error"
+                msg: "Internal server error",
             });
         }
     }

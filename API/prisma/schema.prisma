@@ -88,6 +88,7 @@ model Task {
   description    String
   inspectorId    Int
   machineId      Int?
+  status         TaskStatus @default(PENDING)
   expirationDate DateTime
   createDate     DateTime  @default(now())
   updateDate     DateTime  @updatedAt
@@ -128,4 +129,9 @@ model Subsets {
 enum Role {
   INSPECTOR
   MAINTAINER
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
 }
