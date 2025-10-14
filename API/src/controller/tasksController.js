@@ -100,7 +100,8 @@ const tasksController = {
 
             console.log(error);
             return res.status(500).json({
-                msg: "Internal server error"
+                msg: "Internal server error",
+                error
             });
         }
     },
