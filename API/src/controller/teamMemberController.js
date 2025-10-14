@@ -11,6 +11,10 @@ const teamMemberController = {
                 return res.status(400).json({ msg: "teamId e personId são obrigatórios" });
             }
 
+            await prisma.teamMember.deleteMany({
+                where: { personId }
+            });
+
             const member = await prisma.teamMember.create({
                 data: { teamId, personId }
             });
