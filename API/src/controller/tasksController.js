@@ -13,7 +13,7 @@ const tasksController = {
             }
 
             const task = await prisma.task.create({
-                data: { title, inspectorId, machineId: machineId || null, status : status || "PEDING" ,description, expirationDate }
+                data: { title, inspectorId, machineId: machineId || null, status : status || "PENDING" ,description, expirationDate }
             });
 
             return res.status(201).json({
