@@ -7,11 +7,11 @@ const employeesController = {
     //Create a new employee acount
     preRegister: async (req, res) => {
         try {
-            const { name, email, role } = req.body;
+            const { name, email, role, cpf } = req.body;
 
-            if (!name || !email || !role) {
+            if (!name || !email || !role || !cpf) {
                 return res.status(400).json({
-                    msg: "Name, email and role are required"
+                    msg: "Name, email, role and cpf are required"
                 });
             }
 
@@ -20,6 +20,7 @@ const employeesController = {
                     name,
                     email,
                     role,
+                    cpf,
                     status: "PENDING_SETUP"
                 }
             })
