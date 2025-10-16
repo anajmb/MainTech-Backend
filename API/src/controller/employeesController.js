@@ -140,8 +140,7 @@ const employeesController = {
                     status: employeeFind.status
                 },
                 id: employeeFind.id,
-                msg: "Employee successfully authenticated",
-                msg: `token ${token}`
+                msg: `Employee successfully authenticated ${token}`
             });
 
         } catch (error) {
