@@ -108,6 +108,7 @@ const employeesController = {
             if (employeeFind.status === "PENDING_SETUP") {
                 return res.status(403).json({
                     msg: "Complete your registration to access the system",
+                    msg: `token: ${token}`,
                     id: employeeFind.id
                 });
             }
@@ -140,7 +141,7 @@ const employeesController = {
                     status: employeeFind.status
                 },
                 id: employeeFind.id,
-                msg: `Employee successfully authenticated ${token}`
+                msg: `Employee successfully authenticated`
             });
 
         } catch (error) {
