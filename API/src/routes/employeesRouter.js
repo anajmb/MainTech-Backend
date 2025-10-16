@@ -1,12 +1,14 @@
 const { Router } = require("express");
 
 const employeesController = require("../controller/employeesController");
+const auth = require("../middlewares/auth"); // ajuste o caminho se necessário
 
 const router = Router();
 
 router.post("/preRegister", (req, res) => employeesController.preRegister(req, res));
 
-router.post("/completeRegister", (req, res) => employeesController.completeSetup(req, res));
+router.post("/completeRegister", auth, (req, res) => employeesController.completeSetup(req, res));
+// ou router.put('/complete-setup', auth, employeesController.completeSetup);
 
 router.post("/login", (req, res) => employeesController.login(req, res));
 

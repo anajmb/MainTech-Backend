@@ -24,6 +24,12 @@ const employeesController = {
                 }
             })
 
+            console.log(`--- E-MAIL DE BOAS-VINDAS ---`);
+            console.log(`Para: ${email}`);
+            console.log(`Sua senha temporária é: ${temporaryPassword}`);
+            console.log(`Acesse nosso sistema para completar seu cadastro.`);
+            console.log(`------------------------------`);
+
             if (employeeCreated.role == "INSPECTOR") {
 
                 const inspectorCreates = await prisma.inspector.create({
@@ -85,7 +91,7 @@ const employeesController = {
 
             if (!email || !password) {
                 return res.status(400).json({
-                    msg: "CPF and password are required"
+                    msg: "email and password are required"
                 });
             }
 
