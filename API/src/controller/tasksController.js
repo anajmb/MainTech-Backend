@@ -61,6 +61,41 @@ const tasksController = {
             });
         }
     },
+   getExpiringSoon: async (req, res) => {
+        try {
+            const now = new Date();
+            const twentyFourHoursFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+            const tasks = await prisma.task.findMany({
+                where: {
+                    expirationDate: {
+                        gte: now, // gte = Greater Than or Equal (maior ou igual a agora)
+                        lte: twentyFourHoursFromNow, // lte = Less Than or Equal (menor ou igual a daqui a 24h)
+                    },
+                },
+                include: {
+                    inspector: {
+                        include: {
+                            person: true
+                        }
+                    },
+                    machine: true,
+                },
+                orderBy: {
+                    expirationDate: 'asc', // Ordena as tarefas mais urgentes primeiro
+                },
+            });
+
+            return res.status(200).json(tasks);
+
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({
+                msg: "Internal server error",
+                error
+            });
+        }
+    },
     getUnique: async (req, res) => {
         try {
             const { id } = req.params;
