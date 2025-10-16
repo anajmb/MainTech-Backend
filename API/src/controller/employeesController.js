@@ -105,9 +105,20 @@ const employeesController = {
                 });
             }
 
+            const firstLoad = {
+                email: employeeFind.email,
+                name: employeeFind.name
+            }
+
+            const firstToken = jwt.sing(firstLoad, "SGNldE5pYW0=", {
+                expiresIn: '1d'
+            })
+
             if (employeeFind.status === "PENDING_SETUP") {
                 return res.status(403).json({
+                    firstToken,
                     msg: "Complete your registration to access the system",
+                    msg: `First Token ${firstToken}`,
                     id: employeeFind.id
                 });
             }
