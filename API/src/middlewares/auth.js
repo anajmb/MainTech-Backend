@@ -7,7 +7,7 @@ module.exports = (req, res, next) => {
     }
     const [, token] = authHeader.split(' ');
     try {
-        const decoded = jwt.verify(token, "SGNldE5pYW0="); // use sua chave secreta
+        const decoded = jwt.verify(token, "SGNldE5pYW0="); // chave de criptografia 
         req.user = decoded;
         next();
     } catch (err) {
