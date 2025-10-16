@@ -45,10 +45,10 @@ model Employees {
   email String @unique
   role  Role
 
-  cpf       String   @unique
-  phone     String
-  password  String
-  birthDate DateTime
+  cpf       String?   @unique
+  phone     String?
+  password  String?
+  birthDate DateTime?
 
   status Status @default(PENDING_SETUP)
 

@@ -7,11 +7,11 @@ const employeesController = {
     //Create a new employee acount
     preRegister: async (req, res) => {
         try {
-            const { name, email, role, cpf } = req.body;
+            const { name, email, role } = req.body;
 
-            if (!name || !email || !role || !cpf) {
+            if (!name || !email || !role) {
                 return res.status(400).json({
-                    msg: "Name, email, role and cpf are required"
+                    msg: "Name, email and role are required"
                 });
             }
 
@@ -20,7 +20,6 @@ const employeesController = {
                     name,
                     email,
                     role,
-                    cpf,
                     status: "PENDING_SETUP"
                 }
             })
@@ -97,6 +96,13 @@ const employeesController = {
             if (!employeeFind) {
                 return res.status(404).json({
                     msg: "Employee not found"
+                });
+            }
+
+            if (employeeFind.status === "PENDING_SETUP") {
+                return res.status(403).json({
+                    msg: "Complete your registration to access the system",
+                    id: employeeFind.id
                 });
             }
 
