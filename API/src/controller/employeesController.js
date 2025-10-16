@@ -162,15 +162,16 @@ const employeesController = {
                     birthDate: new Date(birthDate),
                     password: hashedPassword,
                     status: "ACTIVE"
-            })
+                }
+            });
 
             return res.status(200).json({
                 msg: "Employee setup completed successfully"
             });
 
-            
+
         } catch (error) {
-            
+
             console.log(error)
             return res.status(500).json({
                 msg: "Internal server error",
