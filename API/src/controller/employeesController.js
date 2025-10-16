@@ -1,6 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const employeesController = {
 
@@ -23,12 +24,6 @@ const employeesController = {
                     status: "PENDING_SETUP"
                 }
             })
-
-            console.log(`--- E-MAIL DE BOAS-VINDAS ---`);
-            console.log(`Para: ${email}`);
-            console.log(`Sua senha temporária é: ${temporaryPassword}`);
-            console.log(`Acesse nosso sistema para completar seu cadastro.`);
-            console.log(`------------------------------`);
 
             if (employeeCreated.role == "INSPECTOR") {
 
@@ -110,15 +105,14 @@ const employeesController = {
                 name: employeeFind.name
             }
 
-            const firstToken = jwt.sing(firstLoad, "SGNldE5pYW0=", {
+            const firstToken = jwt.sign(firstLoad, "SGNldE5pYW0=", {
                 expiresIn: '1d'
-            })
+            });
 
             if (employeeFind.status === "PENDING_SETUP") {
                 return res.status(403).json({
                     firstToken,
-                    msg: "Complete your registration to access the system",
-                    msg: `First Token ${firstToken}`,
+                    msg: `Complete your registration to access the system. First Token: ${firstToken}`,
                     id: employeeFind.id
                 });
             }
@@ -177,21 +171,13 @@ const employeesController = {
 
             const { cpf, phone, birthDate, password } = req.body;
 
-            if (!cpf || !phone || !birthDate || !password) {
-                return res.status(400).json({
-                    msg: "All fields are necessary"
-                });
-            }
-
-            const hashedPassword = await bcrypt.hash(password, 10);
-
             await prisma.employees.update({
                 where: { id: Number(id) },
                 data: {
                     cpf,
                     phone,
                     birthDate: new Date(birthDate),
-                    password: hashedPassword,
+                    password: await bcrypt.hash(password, 10),
                     status: "ACTIVE"
                 }
             });
@@ -297,7 +283,7 @@ const employeesController = {
                     email,
                     phone,
                     birthDate: new Date(birthDate),
-                    password,
+                    password: await bcrypt.hash(password, 10),
                     role
                 },
                 where: {
