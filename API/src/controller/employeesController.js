@@ -101,6 +101,7 @@ const employeesController = {
             }
 
             const firstLoad = {
+                id: employeeFind.id,
                 email: employeeFind.email,
                 name: employeeFind.name
             }
