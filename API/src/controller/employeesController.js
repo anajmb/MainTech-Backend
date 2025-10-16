@@ -86,6 +86,7 @@ const employeesController = {
 
     login: async (req, res) => {
         try {
+
             const { email, password } = req.body;
 
             if (!email || !password) {
@@ -104,7 +105,20 @@ const employeesController = {
                 });
             }
 
-            // Permite login mesmo com cadastro incompleto
+            if (employeeFind.status === "PENDING_SETUP") {
+                return res.status(403).json({
+                    msg: "Complete your registration to access the system",
+                    id: employeeFind.id
+                });
+            }
+
+            if (!employeeFind.password) {
+                return res.status(403).json({
+                    msg: "You must complete your registration before logging in",
+                    id: employeeFind.id
+                });
+            }
+
             const passwordMatch = await bcrypt.compare(password, employeeFind.password);
 
             if (!passwordMatch) {
@@ -122,11 +136,8 @@ const employeesController = {
             };
 
             const token = jwt.sign(payload, "SGNldE5pYW0=", {
-                expiresIn: '1d'
+                expiresIn: '1d' // Token expiration time
             });
-
-            // Indica se precisa completar o cadastro
-            const needsSetup = employeeFind.status === "PENDING_SETUP";
 
             return res.status(200).json({
                 token,
@@ -136,10 +147,7 @@ const employeesController = {
                     status: employeeFind.status
                 },
                 id: employeeFind.id,
-                needsSetup,
-                msg: needsSetup
-                    ? "Complete your registration to access the system"
-                    : "Employee successfully authenticated"
+                msg: "Employee successfully authenticated"
             });
 
         } catch (error) {
