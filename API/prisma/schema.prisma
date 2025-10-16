@@ -40,14 +40,18 @@ model Team {
 }
 
 model Employees {
-  id          Int          @id @default(autoincrement())
-  name        String
-  cpf         String       @unique
-  email       String       @unique
-  phone       String
-  password    String
-  birthDate   DateTime
-  role        Role
+  id    Int    @id @default(autoincrement())
+  name  String
+  email String @unique
+  role  Role
+
+  cpf       String   @unique
+  phone     String
+  password  String
+  birthDate DateTime
+
+  status Status @default(PENDING_SETUP)
+
   createDate  DateTime     @default(now())
   updateDate  DateTime     @updatedAt
   inspector   Inspector?
@@ -83,17 +87,17 @@ model Maintainer {
 }
 
 model Task {
-  id             Int       @id @default(autoincrement())
+  id             Int        @id @default(autoincrement())
   title          String
   description    String
   inspectorId    Int
   machineId      Int?
-  status         TaskStatus 
+  status         TaskStatus
   expirationDate DateTime
-  createDate     DateTime  @default(now())
-  updateDate     DateTime  @updatedAt
-  inspector      Inspector @relation(fields: [inspectorId], references: [id])
-  machine        Machine?  @relation(fields: [machineId], references: [id])
+  createDate     DateTime   @default(now())
+  updateDate     DateTime   @updatedAt
+  inspector      Inspector  @relation(fields: [inspectorId], references: [id])
+  machine        Machine?   @relation(fields: [machineId], references: [id])
 }
 
 model Machine {
@@ -134,4 +138,10 @@ enum Role {
 enum TaskStatus {
   PENDING
   COMPLETED
+}
+
+enum Status {
+  PENDING_SETUP
+  ACTIVE
+  INACTIVE
 }
