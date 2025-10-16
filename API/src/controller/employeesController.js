@@ -105,6 +105,12 @@ const employeesController = {
                 });
             }
 
+            if (employeeFind.status === "PENDING_SETUP") {
+                return res.status(403).json({
+                    msg: "Complete your registration to access the system",
+                    id: employeeFind.id
+                });
+            }
 
             const passwordMatch = await bcrypt.compare(password, employeeFind.password);
 
@@ -134,7 +140,7 @@ const employeesController = {
                     status: employeeFind.status
                 },
                 id: employeeFind.id,
-                msg: `Employee successfully authenticated`
+                msg: `Employee successfully authenticated ${token}`
             });
 
         } catch (error) {
