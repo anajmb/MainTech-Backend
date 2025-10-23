@@ -256,6 +256,12 @@ const employeesController = {
                 where: { id: Number(id) }
             });
 
+            if (employee.role === "ADMIN") {
+                return res.status(403).json({
+                    msg: "Cannot update an ADMIN employee in this route"
+                });
+            }
+
             if (employee.role !== role) {
                 if (employee.role === "INSPECTOR") {
 
@@ -280,14 +286,7 @@ const employeesController = {
                             id: Number(id)
                         }
                     });
-                } else if (employee.role === "ADMIN") {
-
-                    return res.status(403).json({
-                        msg: "Cannot change role of an ADMIN employee in this route",
-                        error: error.message
-                    });
-
-                }
+                } 
             }
 
 
