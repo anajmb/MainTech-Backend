@@ -119,12 +119,12 @@ model Subsets {
 enum Role {
   INSPECTOR
   MAINTAINER
+  ADMIN
 }
 
 enum TaskStatus {
   PENDING
   COMPLETED
-  ADMIN
 }
 
 enum Status {
