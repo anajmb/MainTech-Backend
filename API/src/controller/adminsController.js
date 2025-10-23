@@ -5,165 +5,171 @@ const bcrypt = require('bcrypt');
 
 const adminsController = {
 
-    // Create a new admin 
     create: async (req, res) => {
-
         try {
-            const { name, cpf, email, phone, birthDate, password } = req.body;
 
-            if (!name || !cpf || !email || !phone || !birthDate || !password) {
+            const { name, email, role, cpf, phone, birthDate, password } = req.body;
+
+            if (!name || !email || !role || !cpf || !phone || !birthDate || !password) {
                 return res.status(400).json({
-                    msg: "Todos os campos são obrigatórios"
+                    msg: "All fields are required"
                 });
             };
 
-            const hashedPassword = await bcrypt.hash(password, 10);
+            if (role.toUpperCase() !== 'ADMIN') {
+                return res.status(403).json({
+                    msg: "This rote only can be used to create adimins 'ADMIN'."
+                });
+            }
 
-            const adminsCreated = await prisma.admins.create({
+            const adminCreated = await prisma.employees.create({
                 data: {
-                    name, 
-                    cpf, 
-                    email, 
-                    phone, 
-                    birthDate: new Date(birthDate), 
-                    password: hashedPassword,
-                    teamId: 1
+                    name,
+                    email,
+                    role,
+                    cpf,
+                    phone,
+                    password: await bcrypt.hash(password, 10),
+                    birthDate: new Date(birthDate),
+                    status: "ACTIVE"
                 }
             });
 
+            const adminCreates = await prisma.admin.create({
+
+                data: {
+
+                    id: adminCreated.id
+
+                }
+
+            });
+
+
+            // 6. Retornar sucesso
             return res.status(201).json({
                 msg: "Admin created successfully",
-                id: adminsCreated.id
+                id: adminCreated.id
             });
-        } catch (error) {
 
+        } catch (error) {
             if (error.code === 'P2002') {
                 return res.status(400).json({
-                    msg: "An admin with this data already exists"
+                    msg: "This email or CPF is already in use."
                 });
             }
 
             console.log(error);
-
             return res.status(500).json({
-                msg: "Internal server error"
+                msg: "Internal server error",
+                error: error.message
             });
         }
     },
 
-    login: async (req, res) => {
-
-        const { cpf, password } = req.body;
-
-        if (!cpf || !password) {
-            return res.status(400).json({
-                msg: "CPF and password are required"
-            });
-        }
-
-        const adminFind = await prisma.admins.findUnique({
-            where: { cpf }
-        });
-
-        if (!adminFind) {
-            return res.status(404).json({
-                msg: "Admin not found"
-            });
-        }
-
-        const passwordMatch = await bcrypt.compare(password, adminFind.password);
-
-        if (!passwordMatch) {
-            return res.status(401).json({
-                msg: "Invalid password or CPF"
-            });
-        }
-
-        const payload = {
-            id: adminFind.id,
-            name: adminFind.name,
-            cpf: adminFind.cpf,
-            email: adminFind.email
-        };
-
-        const token = jwt.sign(payload, "SGNldE5pYW0=", {
-            expiresIn: '1d'
-        });
-
-        return res.status(200).json({
-            token,
-            id: adminFind.id,
-            msg: "Admin authenticated successfully"
-        });
-    },
 
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { name, cpf, email, phone, birthDate, password } = req.body;
+            const { name, cpf, email, phone, birthDate, password, role } = req.body;
 
-            if (!name || !cpf || !email || !phone || !birthDate || !password) {
+            if (!name || !cpf || !email || !phone || !birthDate || !password || !role) {
                 return res.status(400).json({
-                    msg: "All fields are required"
+                    msg: 'All fields (including role) are necessary'
                 });
             }
 
-            const hashedPassword = await bcrypt.hash(password, 10);
+            const employee = await prisma.employees.findUnique({
+                where: { id: Number(id) }
+            });
 
-            await prisma.admins.update({
-                where: { id: Number(id) },
-                data: { name, cpf, email, phone, birthDate: new Date(birthDate), password: hashedPassword, teamId: 1 }
+
+            if (employee.role.toUpperCase() !== 'ADMIN') {
+                return res.status(403).json({
+                    msg: "This rote only can be used to update adimins."
+                });
+            }
+
+            await prisma.employees.update({
+                data: {
+                    name,
+                    cpf,
+                    email,
+                    phone,
+                    birthDate: new Date(birthDate),
+                    password: await bcrypt.hash(password, 10),
+                    role
+                },
+                where: {
+                    id: Number(id)
+                }
             });
 
             return res.status(200).json({
-                msg: "Admin updated successfully"
+                msg: 'Admin updated successfully',
             });
-            
         } catch (error) {
-
-            console.log(error);
+            console.log(error)
 
             return res.status(500).json({
-                msg: "Internal server error"
-
-            });
+                msg: "Internal server error",
+                error: error.message
+            })
         }
     },
 
     delete: async (req, res) => {
-
         try {
             const { id } = req.params;
 
-            const adminDelete = await prisma.admins.delete({
+            const employee = await prisma.employees.findUnique({
                 where: { id: Number(id) }
             });
 
-            if (!id) {
-                return res.status(400).json({
-                    msg: "ID is required"
+            if (employee.role.toUpperCase() !== "ADMIN") {
+                return res.status(403).json({
+                    msg: "Only ADMIN employees can be deleted in this route"
                 });
             }
 
+            // Remove registros relacionados
+            await prisma.inspector.deleteMany({
+                where: { id: Number(id) }
+            });
+
+            await prisma.maintainer.deleteMany({
+                where: { id: Number(id) }
+            });
+
+            await prisma.admin.deleteMany({
+                where: { id: Number(id) }
+            });
+
+            await prisma.teamMember.deleteMany({
+                where: { personId: Number(id) }
+            });
+
+
+            // Agora pode deletar o funcionário
+            await prisma.employees.delete({
+                where: { id: Number(id) }
+            });
+
             return res.status(200).json({
                 msg: "Admin deleted successfully",
-                adminDelete
             });
-
         } catch (error) {
-
-            console.log(error);
-
+            console.log(error)
             return res.status(500).json({
                 msg: "Internal server error"
-            });
+            })
         }
 
     },
 
     getAll: async (req, res) => {
         try {
-            const admins = await prisma.admins.findMany();
+            const admins = await prisma.admin.findMany();
             return res.status(200).json(admins);
         } catch (error) {
             console.log(error);
@@ -176,7 +182,7 @@ const adminsController = {
     getUnique: async (req, res) => {
         try {
             const { id } = req.params;
-            const admin = await prisma.admins.findUnique({
+            const admin = await prisma.admin.findUnique({
                 where: { id: Number(id) }
             });
 
