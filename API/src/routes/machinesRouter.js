@@ -11,6 +11,9 @@ router.get('/getUnique/:id', (req, res) => machinesController.getUnique(req, res
 
 router.put('/update/:id', (req, res) => machinesController.update(req, res));
 
+router.patch('/updateTemp/:id', (req, res) => machinesController.updateTemperature(req, res));
+
+
 router.delete('/delete/:id', (req, res) => machinesController.delete(req, res));
 
 module.exports = router;
