@@ -138,6 +138,46 @@ const machinesController = {
         }
     },
 
+    updateTemperature: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { temperature } = req.body;
+
+            // Validação: checa se a temperatura foi enviada no body
+            if (temperature === undefined) {
+                return res.status(400).json({
+                    msg: "Temperature field is required in the body"
+                });
+            }
+
+            // Atualiza a máquina no banco de dados
+            const updatedMachine = await prisma.machine.update({
+                where: { id: Number(id) },
+                data: {
+                    temperature: parseFloat(temperature),
+                    // O campo 'updateDate' será atualizado automaticamente
+                    // se você tiver @updatedAt no seu schema.prisma
+                }
+            });
+
+            return res.status(200).json({
+                msg: "Temperature updated successfully",
+                machine: updatedMachine
+            });
+
+        } catch (error) {
+            console.log(error);
+            // Checa se a máquina não foi encontrada
+            if (error.code === 'P2025') {
+                return res.status(404).json({ msg: "Machine not found" });
+            }
+            return res.status(500).json({
+                msg: "Internal server error",
+                error: error.message
+            });
+        }
+    },
+
     delete: async (req, res) => {
         try {
             const { id } = req.params;
