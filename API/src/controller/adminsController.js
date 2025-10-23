@@ -1,4 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient, Prisma } = require("@prisma/client");
 const prisma = new PrismaClient();
 const bcrypt = require('bcrypt');
 
@@ -16,17 +16,18 @@ const adminsController = {
                 });
             };
 
-            if (role.toUpperCase() !== 'ADMIN') {
-                return res.status(403).json({
-                    msg: "This rote only can be used to create adimins 'ADMIN'."
-                });
+            const allowedRoles = Object.values(Prisma.Role);
+            const roleNormalized = role.toUpperCase();
+
+            if (!allowedRoles.includes(roleNormalized)) {
+                return res.status(400).json({ msg: `Invalid role. Allowed values: ${allowedRoles.join(', ')}` });
             }
 
             const adminCreated = await prisma.employees.create({
                 data: {
                     name,
                     email,
-                    role,
+                    role: roleNormalized,
                     cpf,
                     phone,
                     password: await bcrypt.hash(password, 10),
