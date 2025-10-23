@@ -7,28 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Admins {
-  id         Int        @id @default(autoincrement())
-  name       String
-  cpf        String     @unique
-  email      String     @unique
-  password   String
-  phone      String
-  birthDate  DateTime
-  teamId     Int
-  createDate DateTime   @default(now())
-  updateDate DateTime   @updatedAt
-  team       AdiminTeam @relation(fields: [teamId], references: [id])
-}
-
-model AdiminTeam {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String
-  createDate  DateTime @default(now())
-  updateDate  DateTime @updatedAt
-  Adimins     Admins[]
-}
 
 model Team {
   id          Int          @id @default(autoincrement())
@@ -56,6 +34,7 @@ model Employees {
   updateDate  DateTime     @updatedAt
   inspector   Inspector?
   maintainer  Maintainer?
+  admin       Admin?
   memberships TeamMember[]
 }
 
@@ -69,6 +48,13 @@ model TeamMember {
   team       Team      @relation(fields: [teamId], references: [id])
 
   @@unique([teamId, personId])
+}
+
+model Admin {
+  id         Int       @id
+  createDate DateTime  @default(now())
+  updateDate DateTime  @updatedAt
+  person     Employees @relation(fields: [id], references: [id])
 }
 
 model Inspector {
@@ -138,6 +124,7 @@ enum Role {
 enum TaskStatus {
   PENDING
   COMPLETED
+  ADMIN
 }
 
 enum Status {

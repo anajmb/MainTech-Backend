@@ -59,8 +59,6 @@ const employeesController = {
 
             }
 
-
-
             return res.status(201).json({
 
                 msg: "Employee created successfully",
@@ -202,6 +200,16 @@ const employeesController = {
         try {
             const { id } = req.params;
 
+            const employee = await prisma.employees.findUnique({
+                where: { id: Number(id) }
+            });
+
+            if (employee.role === "ADMIN") {
+                return res.status(403).json({
+                    msg: "Cannot delete an ADMIN employee in this route"
+                });
+            }
+
             // Remove registros relacionados
             await prisma.inspector.deleteMany({
                 where: { id: Number(id) }
@@ -272,6 +280,13 @@ const employeesController = {
                             id: Number(id)
                         }
                     });
+                } else if (employee.role === "ADMIN") {
+
+                    return res.status(403).json({
+                        msg: "Cannot change role of an ADMIN employee in this route",
+                        error: error.message
+                    });
+
                 }
             }
 
