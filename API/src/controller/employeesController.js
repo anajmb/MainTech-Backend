@@ -8,9 +8,9 @@ const employeesController = {
     //Create a new employee acount
     preRegister: async (req, res) => {
         try {
-            const { name, email, role } = req.body;
+            const { cpf, email, role } = req.body;
 
-            if (!name || !email || !role) {
+            if (!cpf || !email || !role) {
                 return res.status(400).json({
                     msg: "Name, email and role are required"
                 });
@@ -18,7 +18,7 @@ const employeesController = {
 
             const employeeCreated = await prisma.employees.create({
                 data: {
-                    name,
+                    cpf,
                     email,
                     role,
                     status: "PENDING_SETUP"
@@ -80,16 +80,16 @@ const employeesController = {
     login: async (req, res) => {
         try {
 
-            const { email, password } = req.body;
+            const { cpf, password } = req.body;
 
-            if (!email || !password) {
+            if (!cpf || !password) {
                 return res.status(400).json({
                     msg: "email and password are required"
                 });
             }
 
             const employeeFind = await prisma.employees.findUnique({
-                where: { email }
+                where: { cpf }
             });
 
             if (!employeeFind) {
@@ -100,7 +100,7 @@ const employeesController = {
 
             const firstLoad = {
                 id: employeeFind.id,
-                email: employeeFind.email,
+                cpf: employeeFind.cpf,
                 name: employeeFind.name
             }
 
@@ -168,12 +168,12 @@ const employeesController = {
         try {
             const id = req.user.id;
 
-            const { cpf, phone, birthDate, password } = req.body;
+            const { email, phone, birthDate, password } = req.body;
 
             await prisma.employees.update({
                 where: { id: Number(id) },
                 data: {
-                    cpf,
+                    email,
                     phone,
                     birthDate: new Date(birthDate),
                     password: await bcrypt.hash(password, 10),

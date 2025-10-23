@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Team {
   id          Int          @id @default(autoincrement())
   name        String
@@ -18,12 +17,12 @@ model Team {
 }
 
 model Employees {
-  id    Int    @id @default(autoincrement())
-  name  String
-  email String @unique
-  role  Role
+  id   Int    @id @default(autoincrement())
+  name String
+  cpf  String @unique
+  role Role
 
-  cpf       String?   @unique
+  email     String?   @unique
   phone     String?
   password  String?
   birthDate DateTime?
