@@ -91,6 +91,7 @@ model Machine {
   description String
   location    String
   qrCode      String
+  temperature Float?
   createDate  DateTime @default(now())
   updateDate  DateTime @updatedAt
   tasks       Task[]
