@@ -16,7 +16,9 @@ const adminsController = {
                 });
             };
 
-            const allowedRoles = Object.values(Prisma.Role);
+            // valida role com fallback se Prisma.Role não estiver disponível
+            const allowedRoles = Prisma && Prisma.Role ? Object.values(Prisma.Role) : ['INSPECTOR','MAINTAINER','ADMIN'];
+
             const roleNormalized = role.toUpperCase();
 
             if (!allowedRoles.includes(roleNormalized)) {
