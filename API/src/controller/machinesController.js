@@ -5,50 +5,59 @@ const QRCode = require('qrcode');
 const machinesController = {
 
     create: async (req, res) => {
-        try {
-            const { name, description, location, sets, tasks } = req.body;
+    try {
+      const { name, description, location, sets, tasks } = req.body;
 
-            // Validação básica
-            if (!name || !description || !location || !sets) {
-                return res.status(400).json({
-                    msg: "Name, description, location and sets are required"
-                });
-            }
+      if (!name || !description || !location || !sets) {
+        return res.status(400).json({
+          msg: "Name, description, location and sets are required"
+        });
+      }
 
-            const setsArray = Array.isArray(sets) ? sets : [sets];
-            const tasksArray = tasks ? (Array.isArray(tasks) ? tasks : [tasks]) : [];
+      const setsArray = Array.isArray(sets) ? sets : [sets];
+      const tasksArray = tasks ? (Array.isArray(tasks) ? tasks : [tasks]) : [];
 
-            const qrData = { id, name, description, location };
-            const qrCode = await QRCode.toDataURL(JSON.stringify(qrData));
-
-            const machine = await prisma.machine.create({
-                data: {
-                    name,
-                    description,
-                    location,
-                    qrCode,
-                    sets: { connect: setsArray.map(id => ({ id })) },
-                    tasks: { connect: tasksArray.map(id => ({ id })) }
-                },
-                include: {
-                    sets: true,
-                    tasks: true
-                }
-            });
-
-            return res.status(201).json({
-                msg: "Machine created successfully",
-                machine
-            });
-
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({
-                msg: "Internal server error",
-                error
-            });
+      
+      const machineWithoutQr = await prisma.machine.create({
+        data: {
+          name,
+          description,
+          location,
+          sets: { connect: setsArray.map(id => ({ id })) },
+          tasks: { connect: tasksArray.map(id => ({ id })) }
         }
-    },
+      });
+
+    
+      const newId = machineWithoutQr.id; 
+      
+
+      const qrData = { id: newId, name, description, location }; 
+      const qrCode = await QRCode.toDataURL(JSON.stringify(qrData));
+
+
+      const machine = await prisma.machine.update({
+        where: { id: newId }, 
+        data: { qrCode: qrCode }, 
+        include: { 
+          sets: true,
+          tasks: true
+        }
+      });
+
+      return res.status(201).json({
+        msg: "Machine created successfully",
+        machine 
+      });
+
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        msg: "Internal server error",
+        error
+      });
+    }
+  },
 
     getAll: async (req, res) => {
         try {
