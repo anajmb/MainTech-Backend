@@ -61,7 +61,7 @@ const employeesController = {
 
             if (!cpf || !password) {
                 return res.status(400).json({
-                    msg: "email and password are required"
+                    msg: "cpf and password are required"
                 });
             }
 
@@ -95,7 +95,7 @@ const employeesController = {
 
             if (!employeeFind.password) {
                 return res.status(403).json({
-                    msg: "You must complete your registration before logging in",
+                    msg: "You must complete your registration before loging in",
                     id: employeeFind.id
                 });
             }
@@ -104,7 +104,7 @@ const employeesController = {
 
             if (!passwordMatch) {
                 return res.status(401).json({
-                    msg: "Invalid password or email"
+                    msg: "Invalid password or cpf"
                 });
             }
 
