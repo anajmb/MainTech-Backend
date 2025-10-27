@@ -90,7 +90,7 @@ model Machine {
   name        String
   description String
   location    String
-  qrCode      String
+  qrCode      String?
   temperature Float?
   createDate  DateTime @default(now())
   updateDate  DateTime @updatedAt
