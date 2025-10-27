@@ -8,72 +8,49 @@ const employeesController = {
     //Create a new employee acount
     preRegister: async (req, res) => {
         try {
-            const { cpf, email, role } = req.body;
+            const { cpf, name, role } = req.body;
 
-            if (!cpf || !email || !role) {
+            if (!cpf || !name || !role) {
                 return res.status(400).json({
-                    msg: "Name, email and role are required"
+                    msg: "CPF, name and role are required"
                 });
             }
 
             const employeeCreated = await prisma.employees.create({
                 data: {
                     cpf,
-                    email,
+                    name,
                     role,
                     status: "PENDING_SETUP"
                 }
-            })
+            });
 
-            if (employeeCreated.role == "INSPECTOR") {
-
-                const inspectorCreates = await prisma.inspector.create({
-
-                    data: {
-
-                        id: employeeCreated.id // O campo correto é 'id', não 'employeeId'
-
-                    }
-
+            if (employeeCreated.role === "INSPECTOR") {
+                await prisma.inspector.create({
+                    data: { id: employeeCreated.id }
                 });
-
-            } else if (employeeCreated.role == "MAINTAINER") {
-
-                const maintainerCreates = await prisma.maintainer.create({
-
-                    data: {
-
-                        id: employeeCreated.id // O campo correto é 'id', não 'employeeId'
-
-                    }
-
+            } else if (employeeCreated.role === "MAINTAINER") {
+                await prisma.maintainer.create({
+                    data: { id: employeeCreated.id }
                 });
-
             } else {
-
+                // Se tiver outros roles, ajuste aqui
                 return res.status(400).json({
-
                     msg: "Role must be either INSPECTOR or MAINTAINER"
-
                 });
-
             }
 
             return res.status(201).json({
-
                 msg: "Employee created successfully",
-
                 id: employeeCreated.id
-
             });
 
         } catch (error) {
-
-            console.log(error)
+            console.log(error);
             return res.status(500).json({
                 msg: "Internal server error",
                 error: error.message
-            })
+            });
         }
     },
 
