@@ -82,7 +82,7 @@ const employeesController = {
                 role: employeeFind.role
             };
 
-            const firstToken = jwt.sign(firstLoad,  process.env.JWT_SECRET, {
+            const firstToken = jwt.sign(firstLoad, process.env.JWT_SECRET, {
                 expiresIn: '1d'
             });
 
@@ -99,7 +99,7 @@ const employeesController = {
                 return res.status(403).json({
                     msg: "You must complete your registration before loging in",
                     id: employeeFind.id,
-                     role: employeeFind.role
+                    role: employeeFind.role
                 });
             }
 
@@ -119,7 +119,7 @@ const employeesController = {
                 status: employeeFind.status
             };
 
-           const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
 
             return res.status(200).json({
                 token,
@@ -175,50 +175,75 @@ const employeesController = {
         }
     },
 
-    delete: async (req, res) => {
-        try {
-            const { id } = req.params;
+  delete: async (req, res) => {
+    try {
+        const { id } = req.params;
+        const employeeId = Number(id);
 
-            const employee = await prisma.employees.findUnique({
-                where: { id: Number(id) }
-            });
+        console.log("Deleting employee with ID:", employeeId);
+        const employee = await prisma.employees.findUnique({
+            where: { id: employeeId }
+        });
 
-            if (employee.role === "ADMIN") {
-                return res.status(403).json({
-                    msg: "Cannot delete an ADMIN employee in this route"
-                });
-            }
-
-            // Remove registros relacionados
-            await prisma.inspector.deleteMany({
-                where: { id: Number(id) }
-            });
-
-            await prisma.maintainer.deleteMany({
-                where: { id: Number(id) }
-            });
-
-            await prisma.teamMember.deleteMany({
-                where: { personId: Number(id) }
-            });
-
-
-            // Agora pode deletar o funcionário
-            await prisma.employees.delete({
-                where: { id: Number(id) }
-            });
-
-            return res.status(200).json({
-                msg: "Employee deleted successfully",
-            });
-        } catch (error) {
-            console.log(error)
-            return res.status(500).json({
-                msg: "Internal server error"
-            })
+        if (!employee) {
+            return res.status(404).json({ msg: "Employee not found" });
         }
 
-    },
+        if (employee.role === "ADMIN") {
+            return res.status(403).json({
+                msg: "Cannot delete an ADMIN employee in this route"
+            });
+        }
+
+        if (employee.role === "INSPECTOR") {
+            console.log("Deleting tasks for inspector:", employeeId);
+            await prisma.task.deleteMany({
+                where: { inspectorId: employeeId }
+            });
+        }
+
+        console.log("Deleting team memberships for employee:", employeeId);
+        await prisma.teamMember.deleteMany({
+            where: { personId: employeeId }
+        });
+
+        console.log("Deleting inspector profile for:", employeeId);
+        await prisma.inspector.deleteMany({
+            where: { id: employeeId }
+        });
+
+        console.log("Deleting maintainer profile for:", employeeId);
+        await prisma.maintainer.deleteMany({
+            where: { id: employeeId }
+        });
+        
+        console.log("Deleting admin profile for:", employeeId);
+        await prisma.admin.deleteMany({
+            where: { id: employeeId }
+        });
+
+        // 6. Finalmente, deletar o funcionário "pai"
+        console.log("Deleting main employee record:", employeeId);
+        await prisma.employees.delete({
+            where: { id: employeeId }
+        });
+
+
+        return res.status(200).json({
+            msg: "Employee deleted successfully",
+        });
+
+    } catch (error) {
+        // Isso vai imprimir o erro real no seu terminal
+        console.log("--- ERROR CAUGHT ON DELETE ---");
+        console.log(error); 
+        console.log("--- END ERROR ---");
+
+        return res.status(500).json({
+            msg: "Internal server error"
+        });
+    }
+},
 
     update: async (req, res) => {
         try {
@@ -265,7 +290,7 @@ const employeesController = {
                             id: Number(id)
                         }
                     });
-                } 
+                }
             }
 
 
