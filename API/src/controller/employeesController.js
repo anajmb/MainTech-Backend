@@ -78,10 +78,11 @@ const employeesController = {
             const firstLoad = {
                 id: employeeFind.id,
                 cpf: employeeFind.cpf,
-                name: employeeFind.name
-            }
+                name: employeeFind.name,
+                role: employeeFind.role
+            };
 
-            const firstToken = jwt.sign(firstLoad, "SGNldE5pYW0=", {
+            const firstToken = jwt.sign(firstLoad,  process.env.JWT_SECRET, {
                 expiresIn: '1d'
             });
 
@@ -89,14 +90,16 @@ const employeesController = {
                 return res.status(403).json({
                     firstToken,
                     msg: `Complete your registration to access the system. First Token: ${firstToken}`,
-                    id: employeeFind.id
+                    id: employeeFind.id,
+                    role: employeeFind.role
                 });
             }
 
             if (!employeeFind.password) {
                 return res.status(403).json({
                     msg: "You must complete your registration before loging in",
-                    id: employeeFind.id
+                    id: employeeFind.id,
+                     role: employeeFind.role
                 });
             }
 
@@ -116,15 +119,14 @@ const employeesController = {
                 status: employeeFind.status
             };
 
-            const token = jwt.sign(payload, "SGNldE5pYW0=", {
-                expiresIn: '1d' // Token expiration time
-            });
+           const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
 
             return res.status(200).json({
                 token,
                 user: {
                     id: employeeFind.id,
                     name: employeeFind.name,
+                    role: employeeFind.role,
                     status: employeeFind.status
                 },
                 id: employeeFind.id,
