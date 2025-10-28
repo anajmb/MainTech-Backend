@@ -5,7 +5,7 @@ const { auth, authorize } = require("../middlewares/auth"); // <-- note a desest
 const router = Router();
 
 router.post("/preRegister", auth, authorize(["ADMIN"]), employeesController.preRegister);
-router.post("/completeRegister", auth, employeesController.completeSetup);
+router.post("/completeRegister", employeesController.completeSetup);
 router.post("/login", employeesController.login);
 router.get("/get", auth, authorize(["ADMIN"]), employeesController.getAll);
 router.get("/getUnique/:id", auth, employeesController.getUnique);

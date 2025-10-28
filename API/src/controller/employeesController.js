@@ -145,36 +145,65 @@ const employeesController = {
 
     completeSetup: async (req, res) => {
         try {
-            const id = req.user.id;
+            // Pega o CPF e outros dados do body
+            const { name, cpf, email, phone, birthDate, password } = req.body;
 
-            const { email, phone, birthDate, password } = req.body;
+            // 1. Validar se todos os campos vieram
+            if (!name || !cpf || !email || !phone || !birthDate || !password) {
+                return res.status(400).json({ msg: "Todos os campos são obrigatórios." });
+            }
 
+            // 2. Verificar o CPF (A lógica que você pediu)
+            const employee = await prisma.employees.findUnique({
+                where: { cpf }
+            });
+
+            // CENÁRIO 1: "Não existe pré-cadastro com este CPF"
+            if (!employee) {
+                return res.status(404).json({
+                    msg: "Não existe um pré-cadastro para este CPF. Fale com um administrador."
+                });
+            }
+
+            // CENÁRIO 2: "Este usuário já foi cadastrado"
+            if (employee.status === "ACTIVE") {
+                return res.status(409).json({ // 409 (Conflict) é bom para "já existe"
+                    msg: "Este CPF já possui um cadastro ativo e não pode ser registrado novamente."
+                });
+            }
+            
+            // CENÁRIO 3: Sucesso (Usuário é PENDING_SETUP)
+            // Atualiza o usuário com os dados informados
             await prisma.employees.update({
-                where: { id: Number(id) },
+                where: { id: employee.id }, // Usa o ID encontrado
                 data: {
+                    name,
+                    cpf,
                     email,
                     phone,
                     birthDate: new Date(birthDate),
                     password: await bcrypt.hash(password, 10),
-                    status: "ACTIVE"
+                    status: "ACTIVE" // Ativa o usuário
                 }
             });
 
+            // Retorna a mensagem de sucesso
             return res.status(200).json({
-                msg: "Employee setup completed successfully"
+                msg: "Cadastro feito com sucesso!"
             });
 
-
         } catch (error) {
-
-            console.log(error)
+            console.log(error);
+            // Captura erro se o email já existir (conflito)
+            if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+                return res.status(409).json({ msg: "Este E-mail já está em uso." });
+            }
             return res.status(500).json({
                 msg: "Internal server error",
                 error: error.message
             })
         }
     },
-
   delete: async (req, res) => {
     try {
         const { id } = req.params;
