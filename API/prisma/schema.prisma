@@ -21,7 +21,7 @@ model Employees {
   name String
   cpf  String @unique
   role Role
-
+  photo       String?
   email     String?   @unique
   phone     String?
   password  String?

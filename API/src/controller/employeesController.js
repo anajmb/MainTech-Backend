@@ -276,83 +276,42 @@ const employeesController = {
     }
 },
 
-    update: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const { name, cpf, email, phone, birthDate, password, role } = req.body;
+//     update: async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { name, email, phone, photo } = req.body;
 
-            if (!name || !cpf || !email || !phone || !birthDate || !password || !role) {
-                return res.status(400).json({
-                    msg: 'All fields (including role) are necessary'
-                });
-            }
+//     // CPF e data de nascimento não podem ser alterados
+//     const employee = await prisma.employees.findUnique({
+//       where: { id: Number(id) },
+//     });
 
-            const employee = await prisma.employees.findUnique({
-                where: { id: Number(id) }
-            });
+//     if (!employee) {
+//       return res.status(404).json({ msg: "Employee not found" });
+//     }
 
-            if (employee.role === "ADMIN") {
-                return res.status(403).json({
-                    msg: "Cannot update an ADMIN employee in this route"
-                });
-            }
+//     const updatedData = {
+//       name,
+//       email,
+//       phone,
+//     };
 
-            if (employee.role !== role) {
-                if (employee.role === "INSPECTOR") {
+//     // Se enviou uma nova imagem em base64, atualiza
+//     if (photo && photo.startsWith("data:image")) {
+//       updatedData.photo = photo;
+//     }
 
-                    await prisma.inspector.deleteMany({
-                        where: { id: Number(id) }
-                    });
+//     await prisma.employees.update({
+//       where: { id: Number(id) },
+//       data: updatedData,
+//     });
 
-                    await prisma.maintainer.create({
-                        data: {
-                            id: Number(id)
-                        }
-                    });
-
-                } else if (employee.role === "MAINTAINER") {
-
-                    await prisma.maintainer.deleteMany({
-                        where: { id: Number(id) }
-                    });
-
-                    await prisma.inspector.create({
-                        data: {
-                            id: Number(id)
-                        }
-                    });
-                }
-            }
-
-
-
-            await prisma.employees.update({
-                data: {
-                    name,
-                    cpf,
-                    email,
-                    phone,
-                    birthDate: new Date(birthDate),
-                    password: await bcrypt.hash(password, 10),
-                    role
-                },
-                where: {
-                    id: Number(id)
-                }
-            });
-
-            return res.status(200).json({
-                msg: 'Employee updated successfully',
-            });
-        } catch (error) {
-            console.log(error)
-
-            return res.status(500).json({
-                msg: "Internal server error"
-            })
-        }
-    },
-
+//     return res.status(200).json({ msg: "Profile updated successfully" });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({ msg: "Internal server error" });
+//   }
+// },
     getAll: async (req, res) => {
         try {
             const employees = await prisma.employees.findMany();
@@ -364,25 +323,62 @@ const employeesController = {
         }
     },
 
-    getUnique: async (req, res) => {
-        try {
-            const { id } = req.params
+   getUnique: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const employee = await prisma.employees.findUnique({
+        where: { id: Number(id) },
+      });
 
-            const employee = await prisma.employees.findUnique({
-                where: { id: Number(id) }
-            })
+      if (!employee) {
+        return res.status(404).json({ msg: "Employee not found" });
+      }
 
-            if (!employee) {
-                return res.status(404).json({ error: "Employee not found" })
-            }
-
-            return res.status(200).json(employee)
-        } catch (error) {
-
-            console.log("Error searching for employee:", error)
-        }
+      return res.status(200).json(employee);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ msg: "Internal server error" });
     }
-}
+  },
+
+  // ✅ Atualizar perfil (sem alterar CPF e data de nascimento)
+  update: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, email, phone, photo } = req.body;
+
+      const employee = await prisma.employees.findUnique({
+        where: { id: Number(id) },
+      });
+
+      if (!employee) {
+        return res.status(404).json({ msg: "Employee not found" });
+      }
+
+      // CPF e birthDate não podem ser alterados
+      const updatedData = {
+        name,
+        email,
+        phone,
+      };
+
+      // Se veio uma nova imagem em base64
+      if (photo && photo.startsWith("data:image")) {
+        updatedData.photo = photo;
+      }
+
+      await prisma.employees.update({
+        where: { id: Number(id) },
+        data: updatedData,
+      });
+
+      return res.status(200).json({ msg: "Profile updated successfully" });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ msg: "Internal server error" });
+    }
+  },
+};
 
 module.exports = employeesController;
 
