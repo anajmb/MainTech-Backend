@@ -78,6 +78,7 @@ const employeesController = {
             const firstLoad = {
                 id: employeeFind.id,
                 cpf: employeeFind.cpf,
+                email: employeeFind.email,
                 name: employeeFind.name,
                 role: employeeFind.role
             };
@@ -126,6 +127,7 @@ const employeesController = {
                 user: {
                     id: employeeFind.id,
                     name: employeeFind.name,
+                    email: employeeFind.email,
                     role: employeeFind.role,
                     status: employeeFind.status
                 },
