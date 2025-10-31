@@ -29,5 +29,8 @@ router.use("/subsets", subSetsRouter);
 const tasksRouter = require("./tasksRouter");
 router.use("/tasks", tasksRouter);
 
+const passwordRouter = require("./routes/passwordRouter"); 
+app.use("/auth", passwordRouter);
+
 
 module.exports = router;
