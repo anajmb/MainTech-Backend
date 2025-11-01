@@ -30,7 +30,7 @@ const tasksRouter = require("./tasksRouter");
 router.use("/tasks", tasksRouter);
 
 const passwordRouter = require("./passwordRouter"); 
-app.use("/auth", passwordRouter);
+router.use("/auth", passwordRouter);
 
 
 module.exports = router;
