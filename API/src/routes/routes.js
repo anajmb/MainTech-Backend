@@ -29,7 +29,7 @@ router.use("/subsets", subSetsRouter);
 const tasksRouter = require("./tasksRouter");
 router.use("/tasks", tasksRouter);
 
-const passwordRouter = require("./routes/passwordRouter"); 
+const passwordRouter = require("./passwordRouter"); 
 app.use("/auth", passwordRouter);
 
 
