@@ -15,6 +15,14 @@ app.get('/', (req, res) => {
   res.send('Servidor Rodando');
 });
 
+app.get("/env-test", (req, res) => {
+  res.json({
+    sendgridKey: process.env.SENDGRID_API_KEY ? "OK" : "MISSING",
+    emailFrom: process.env.EMAIL_FROM || "NOT SET",
+  });
+});
+
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
