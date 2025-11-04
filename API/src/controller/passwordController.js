@@ -20,7 +20,7 @@ const passwordResetController = {
       if (!user) return res.status(404).json({ msg: "Usuário não encontrado" });
 
       // Gere 6 dígitos (padrão)
-      const code = crypto.randomInt(1000, 9999).toString(); 
+      const code = crypto.randomInt(1000, 9999).toString();
       resetCodes[email] = { code, createdAt: Date.now() };
 
       const msg = {
@@ -31,6 +31,8 @@ const passwordResetController = {
         html: `<p>Seu código de verificação é: <strong>${code}</strong></p>`,
       };
 
+      console.log("SENDGRID_API_KEY existe?", !!process.env.SENDGRID_API_KEY);
+      console.log("EMAIL_FROM:", process.env.EMAIL_FROM);
       await sgMail.send(msg);
 
       return res.json({ msg: "Código enviado para o e-mail." });
