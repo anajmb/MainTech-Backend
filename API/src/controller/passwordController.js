@@ -1,60 +1,78 @@
+require("dotenv").config();
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+const sgMail = require("@sendgrid/mail");
 const bcrypt = require("bcrypt");
 
-let resetCodes = {}; // memória temporária (ideal: banco)
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // use senha de app do Gmail
-  },
-});
+let resetCodes = {}; // memória temporária — ideal: guardar no DB com TTL
 
 const passwordResetController = {
-    
+
   sendCode: async (req, res) => {
     try {
       const { email } = req.body;
+      if (!email) return res.status(400).json({ msg: "Envie o e-mail." });
 
       const user = await prisma.employees.findUnique({ where: { email } });
       if (!user) return res.status(404).json({ msg: "Usuário não encontrado" });
 
-      const code = crypto.randomInt(100000, 999999).toString();
-      resetCodes[email] = code;
+      // Gere 6 dígitos (padrão)
+      const code = crypto.randomInt(1000, 9999).toString(); 
+      resetCodes[email] = { code, createdAt: Date.now() };
 
-      await transporter.sendMail({
-        from: `"Gestão de Máquinas" <${process.env.EMAIL_USER}>`,
+      const msg = {
         to: email,
-        subject: "Redefinição de senha",
+        from: process.env.EMAIL_FROM, // ex: "no-reply@seuapp.com"
+        subject: "Redefinição de senha - Código de verificação",
         text: `Seu código de verificação é: ${code}`,
-      });
+        html: `<p>Seu código de verificação é: <strong>${code}</strong></p>`,
+      };
 
-      res.json({ msg: "Código enviado para o e-mail." });
+      await sgMail.send(msg);
+
+      return res.json({ msg: "Código enviado para o e-mail." });
     } catch (error) {
-      console.log(error);
-      res.status(500).json({ msg: "Erro ao enviar e-mail." });
+      console.error("Erro sendCode:", error);
+      return res.status(500).json({ msg: "Erro ao enviar e-mail." });
     }
   },
 
   verifyCode: async (req, res) => {
     try {
       const { email, code } = req.body;
-      if (resetCodes[email] === code) {
+      if (!email || !code) return res.status(400).json({ msg: "Envie email e código." });
+
+      const entry = resetCodes[email];
+      if (!entry) return res.status(400).json({ valid: false, msg: "Código expirado ou não gerado." });
+
+      // opcional: expirar código após 15 minutos
+      const fifteenMinutes = 15 * 60 * 1000;
+      if (Date.now() - entry.createdAt > fifteenMinutes) {
+        delete resetCodes[email];
+        return res.status(400).json({ valid: false, msg: "Código expirado." });
+      }
+
+      if (entry.code === code) {
         return res.json({ valid: true });
       }
-      res.status(400).json({ valid: false, msg: "Código incorreto." });
+
+      return res.status(400).json({ valid: false, msg: "Código incorreto." });
     } catch (error) {
-      res.status(500).json({ msg: "Erro interno" });
+      console.error("Erro verifyCode:", error);
+      return res.status(500).json({ msg: "Erro interno" });
     }
   },
 
   resetPassword: async (req, res) => {
     try {
       const { email, newPassword } = req.body;
+      if (!email || !newPassword) return res.status(400).json({ msg: "Envie email e nova senha." });
+
+      // opcional: verificar se código ainda existe / válido
+      // (você já verificou na etapa anterior no frontend)
 
       const hashed = await bcrypt.hash(newPassword, 10);
       await prisma.employees.update({
@@ -63,10 +81,10 @@ const passwordResetController = {
       });
 
       delete resetCodes[email];
-      res.json({ msg: "Senha redefinida com sucesso!" });
+      return res.json({ msg: "Senha redefinida com sucesso!" });
     } catch (error) {
-      console.log(error);
-      res.status(500).json({ msg: "Erro ao redefinir senha" });
+      console.error("Erro resetPassword:", error);
+      return res.status(500).json({ msg: "Erro ao redefinir senha" });
     }
   },
 };
