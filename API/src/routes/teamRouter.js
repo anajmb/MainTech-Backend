@@ -10,6 +10,8 @@ router.get("/get", (req, res) => teamController.getAll(req, res));
 
 router.get("/getUnique/:id", (req, res) => teamController.getUnique(req, res));
 
+router.get("/getByUser/:userId", (req, res) => teamController.getByUser(req, res));
+
 router.put("/update/:id", (req, res) => teamController.update(req, res));
 
 router.delete("/delete/:id", (req, res) => teamController.delete(req, res));
