@@ -25,7 +25,7 @@ const servicesOrdersController = {
 
             return res.status(201).json({
                 msg: "Service order created succesfully",
-                id: serviceOrder.id 
+                id: serviceOrder.id
             });
 
         } catch (error) {
@@ -39,11 +39,14 @@ const servicesOrdersController = {
     getAll: async (req, res) => {
         try {
 
-            const serviceOrders = await prisma.servicesOrders.findMany({
-                include: {
-                    payload: true
+            const orders = await prisma.servicesOrders.findMany({
+                select: {
+                    id: true,
+                    priority: true,
+                    payload: true // Você pode selecionar 'payload' aqui
                 }
             });
+            
             return res.status(200).json(serviceOrders);
 
         } catch (error) {
@@ -57,7 +60,7 @@ const servicesOrdersController = {
     getUnique: async (req, res) => {
         try {
             const { id } = req.params;
-            
+
             const serviceOrder = await prisma.servicesOrders.findUnique({
                 where: { id: Number(id) },
                 include: {
