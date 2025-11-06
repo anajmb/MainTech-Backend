@@ -65,10 +65,7 @@ const servicesOrdersController = {
             const { id } = req.params;
 
             const serviceOrder = await prisma.servicesOrders.findUnique({
-                where: { id: Number(id) },
-                include: {
-                    payload: true
-                }
+                where: { id: Number(id) }
             });
 
             if (!serviceOrder) {
