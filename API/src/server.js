@@ -1,28 +1,3 @@
-<<<<<<< HEAD
-const express = require('express')
-const routes = require('./routes/routes')
-const { PrismaClient } = require("@prisma/client")
-const cors = require("cors")
-
-const passwordRouter = require("./routes/passwordRouter");
-
-const app = express()
-const prisma = new PrismaClient()
-
-app.use(cors());
-
-app.use(express.json())
-app.use(routes)
-
-
-app.get('/', (req, res) => {
-	res.send('Servidor Rodando')
-})
-
-app.listen(8080, () => {
-	console.log("Servidor rodando na porta", 8080)
-})
-=======
 require("dotenv").config(); // <- importante no topo
 const express = require('express');
 const routes = require('./routes/routes');
@@ -52,4 +27,4 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
->>>>>>> 93d5731be54fa642741a844166432eb539e9e929
+

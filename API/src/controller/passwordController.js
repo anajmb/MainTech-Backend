@@ -1,26 +1,3 @@
-<<<<<<< HEAD
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-const crypto = require("crypto");
-const nodemailer = require("nodemailer");
-const bcrypt = require("bcrypt");
-
-let resetCodes = {}; // memória temporária (ideal: banco)
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // use senha de app do Gmail
-  },
-});
-
-const passwordResetController = {
-    
-  sendCode: async (req, res) => {
-    try {
-      const { email } = req.body;
-=======
 require("dotenv").config();
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
@@ -39,45 +16,11 @@ const passwordResetController = {
     try {
       const { email } = req.body;
       if (!email) return res.status(400).json({ msg: "Envie o e-mail." });
->>>>>>> 93d5731be54fa642741a844166432eb539e9e929
+
 
       const user = await prisma.employees.findUnique({ where: { email } });
       if (!user) return res.status(404).json({ msg: "Usuário não encontrado" });
 
-<<<<<<< HEAD
-      const code = crypto.randomInt(100000, 999999).toString();
-      resetCodes[email] = code;
-
-      await transporter.sendMail({
-        from: `"Gestão de Máquinas" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: "Redefinição de senha",
-        text: `Seu código de verificação é: ${code}`,
-      });
-
-      res.json({ msg: "Código enviado para o e-mail." });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ msg: "Erro ao enviar e-mail." });
-    }
-  },
-
-  verifyCode: async (req, res) => {
-    try {
-      const { email, code } = req.body;
-      if (resetCodes[email] === code) {
-        return res.json({ valid: true });
-      }
-      res.status(400).json({ valid: false, msg: "Código incorreto." });
-    } catch (error) {
-      res.status(500).json({ msg: "Erro interno" });
-    }
-  },
-
-  resetPassword: async (req, res) => {
-    try {
-      const { email, newPassword } = req.body;
-=======
       const code = crypto.randomInt(1000, 9999).toString();
       resetCodes[email] = { code, createdAt: Date.now() };
 
@@ -128,7 +71,6 @@ const passwordResetController = {
     try {
       const { email, newPassword } = req.body;
       if (!email || !newPassword) return res.status(400).json({ msg: "Envie email e nova senha." });
->>>>>>> 93d5731be54fa642741a844166432eb539e9e929
 
       const hashed = await bcrypt.hash(newPassword, 10);
       await prisma.employees.update({
@@ -137,23 +79,15 @@ const passwordResetController = {
       });
 
       delete resetCodes[email];
-<<<<<<< HEAD
-      res.json({ msg: "Senha redefinida com sucesso!" });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ msg: "Erro ao redefinir senha" });
-=======
       return res.json({ msg: "Senha redefinida com sucesso!" });
     } catch (error) {
       console.error("Erro resetPassword:", error);
       return res.status(500).json({ msg: "Erro ao redefinir senha." });
->>>>>>> 93d5731be54fa642741a844166432eb539e9e929
+
     }
   },
 };
 
-<<<<<<< HEAD
+
 module.exports = passwordResetController;
-=======
-module.exports = passwordResetController;
->>>>>>> 93d5731be54fa642741a844166432eb539e9e929
+
