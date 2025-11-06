@@ -124,7 +124,6 @@ model Subsets {
   sets    Sets[]  @relation("SetToSubsets")
 }
 
-<<<<<<< HEAD
 model ServicesOrders {
   id Int @id @default(autoincrement())
 
@@ -140,8 +139,6 @@ model ServicesOrders {
   @@map("inspection_reports")
 }
 
-=======
->>>>>>> 93d5731be54fa642741a844166432eb539e9e929
 enum Role {
   INSPECTOR
   MAINTAINER
