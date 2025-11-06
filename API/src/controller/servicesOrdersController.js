@@ -44,7 +44,9 @@ const servicesOrdersController = {
                     id: true,
                     machineId: true,
                     priority: true,
-                    payload: true // Você pode selecionar 'payload' aqui
+                    payload: true,
+                    createdAt: true,
+                    updatedAt: true
                 }
             });
 
