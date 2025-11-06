@@ -39,14 +39,14 @@ const servicesOrdersController = {
     getAll: async (req, res) => {
         try {
 
-            const orders = await prisma.servicesOrders.findMany({
+            const serviceOrders = await prisma.servicesOrders.findMany({
                 select: {
                     id: true,
                     priority: true,
                     payload: true // Você pode selecionar 'payload' aqui
                 }
             });
-            
+
             return res.status(200).json(serviceOrders);
 
         } catch (error) {
