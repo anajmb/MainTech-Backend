@@ -42,6 +42,7 @@ const servicesOrdersController = {
             const serviceOrders = await prisma.servicesOrders.findMany({
                 select: {
                     id: true,
+                    machineId: true,
                     priority: true,
                     payload: true // Você pode selecionar 'payload' aqui
                 }
