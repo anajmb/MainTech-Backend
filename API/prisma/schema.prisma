@@ -17,11 +17,19 @@ model Team {
 }
 
 model Employees {
+<<<<<<< HEAD
   id        Int       @id @default(autoincrement())
   name      String
   cpf       String    @unique
   role      Role
   photo     String?
+=======
+  id   Int    @id @default(autoincrement())
+  name String
+  cpf  String @unique
+  role Role
+  photo       String?
+>>>>>>> 93d5731be54fa642741a844166432eb539e9e929
   email     String?   @unique
   phone     String?
   password  String?
@@ -116,6 +124,7 @@ model Subsets {
   sets    Sets[]  @relation("SetToSubsets")
 }
 
+<<<<<<< HEAD
 model ServicesOrders {
   id Int @id @default(autoincrement())
 
@@ -131,6 +140,8 @@ model ServicesOrders {
   @@map("inspection_reports")
 }
 
+=======
+>>>>>>> 93d5731be54fa642741a844166432eb539e9e929
 enum Role {
   INSPECTOR
   MAINTAINER
@@ -147,6 +158,7 @@ enum Status {
   ACTIVE
   INACTIVE
 }
+<<<<<<< HEAD
 
 enum Priority {
   low
@@ -159,3 +171,5 @@ enum ReportStatus {
   IN_PROGRESS
   COMPLETED
 }
+=======
+>>>>>>> 93d5731be54fa642741a844166432eb539e9e929
