@@ -17,11 +17,11 @@ model Team {
 }
 
 model Employees {
-  id   Int    @id @default(autoincrement())
-  name String
-  cpf  String @unique
-  role Role
-  photo       String?
+  id        Int       @id @default(autoincrement())
+  name      String
+  cpf       String    @unique
+  role      Role
+  photo     String?
   email     String?   @unique
   phone     String?
   password  String?
@@ -116,6 +116,21 @@ model Subsets {
   sets    Sets[]  @relation("SetToSubsets")
 }
 
+model ServicesOrders {
+  id Int @id @default(autoincrement())
+
+  machineId Int 
+  priority  Priority  
+  status    ReportStatus @default(PENDING)
+
+  payload Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("inspection_reports")
+}
+
 enum Role {
   INSPECTOR
   MAINTAINER
@@ -131,4 +146,16 @@ enum Status {
   PENDING_SETUP
   ACTIVE
   INACTIVE
+}
+
+enum Priority {
+  low
+  medium
+  high
+}
+
+enum ReportStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
 }
