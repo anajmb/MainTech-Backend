@@ -5,6 +5,8 @@ const router = Router();
 
 router.post('/create', (req, res) => machinesController.create(req, res));
 
+router.post('/updateTemperature/:id/temperature', updateTemperature);
+
 router.get('/get', (req, res) => machinesController.getAll(req, res));
 
 router.get('/getUnique/:id', (req, res) => machinesController.getUnique(req, res));
