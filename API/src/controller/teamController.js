@@ -35,7 +35,7 @@ const teamController = {
                 include: {
                     members: {
                         include: {
-                            person: true 
+                            person: true
                         }
                     }
                 }
@@ -57,7 +57,7 @@ const teamController = {
                 include: {
                     members: {
                         include: {
-                            person: true 
+                            person: true
                         }
                     }
                 }
@@ -79,38 +79,38 @@ const teamController = {
     },
 
     getByUser: async (req, res) => {
-  try {
-    const { userId } = req.params;
+        try {
+            const { userId } = req.params;
 
-    if (!userId) {
-      return res.status(400).json({ msg: "User ID is required" });
-    }
+            if (!userId) {
+                return res.status(400).json({ msg: "User ID is required" });
+            }
 
-    const teamMember = await prisma.teamMember.findFirst({
-      where: { personId: Number(userId) },
-      include: {
-        team: {
-          include: {
-            members: {
-              include: {
-                person: true,
-              },
-            },
-          },
-        },
-      },
-    });
+            const teamMember = await prisma.teamMember.findFirst({
+                where: { personId: Number(userId) },
+                include: {
+                    team: {
+                        include: {
+                            members: {
+                                include: {
+                                    person: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
 
-    if (!teamMember) {
-      return res.status(404).json({ msg: "User is not in any team" });
-    }
+            if (!teamMember) {
+                return res.status(404).json({ msg: "User is not in any team" });
+            }
 
-    return res.status(200).json(teamMember.team);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ msg: "Internal server error" });
-  }
-},
+            return res.status(200).json(teamMember.team);
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ msg: "Internal server error" });
+        }
+    },
 
     update: async (req, res) => {
         try {
