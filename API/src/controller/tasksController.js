@@ -3,32 +3,34 @@ const prisma = new PrismaClient();
 
 const tasksController = {
     create: async (req, res) => {
-        try {
-            const { title, inspectorId, machineId, status, description, expirationDate } = req.body;
+    try {
+      const { title, inspectorId, machineId, status, description, expirationDate } = req.body;
 
-            if (!title || !inspectorId) {
-                return res.status(400).json({
-                    msg: "Title and inspectorId are required"
-                });
-            }
+      if (!title || !inspectorId) {
+        return res.status(400).json({ msg: "Title and inspectorId are required" });
+      }
 
-            const task = await prisma.task.create({
-                data: { title, inspectorId, machineId: machineId || null, status : status || "PENDING" ,description, expirationDate }
-            });
+      const task = await prisma.task.create({
+        data: { title, inspectorId, machineId: machineId || null, status: status || "PENDING", description, expirationDate },
+      });
 
-            return res.status(201).json({
-                msg: "Task created successfully",
-                id: task.id
-            });
+      // 🔹 Registra no histórico
+      await prisma.history.create({
+        data: {
+          userId: Number(inspectorId),
+          action: "Criou uma tarefa",
+          entityType: "Task",
+          entityId: task.id,
+          description: `Criou a tarefa "${title}"`,
+        },
+      });
 
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({
-                msg: "Internal server error",
-                error
-            });
-        }
-    },
+      return res.status(201).json({ msg: "Task created successfully", id: task.id });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ msg: "Internal server error", error });
+    }
+  },
     getAll: async (req, res) => {
         try {
             const { status } = req.query;
@@ -121,53 +123,64 @@ const tasksController = {
             });
         }
     },
-    update: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const { title, inspectorId, machineId, status, description, expirationDate } = req.body;
+   update: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { title, inspectorId, machineId, status, description, expirationDate } = req.body;
 
-            if (!title || !inspectorId) {
-                return res.status(400).json({
-                    msg: "Title and inspectorId are required"
-                });
-            }
+      if (!title || !inspectorId) {
+        return res.status(400).json({ msg: "Title and inspectorId are required" });
+      }
 
-            const set = await prisma.task.update({
-                where: { id: Number(id) },
-                data: { title, inspectorId, machineId: machineId || null, status, description, expirationDate }
-            });
+      const updatedTask = await prisma.task.update({
+        where: { id: Number(id) },
+        data: { title, inspectorId, machineId: machineId || null, status, description, expirationDate },
+      });
 
-            return res.status(200).json({
-                msg: "Task updated successfully",
-                set: set.id
-            });
-        } catch (error) {
+      // 🔹 Registra no histórico
+      await prisma.history.create({
+        data: {
+          userId: Number(inspectorId),
+          action: "Atualizou uma tarefa",
+          entityType: "Task",
+          entityId: Number(id),
+          description: `Tarefa "${title}" atualizada para status "${status}"`,
+        },
+      });
 
-            console.log(error);
-            return res.status(500).json({
-                msg: "Internal server error",
-                error
-            });
-        }
-    },
-    delete: async (req, res) => {
-        try {
-            const { id } = req.params;
+      return res.status(200).json({ msg: "Task updated successfully", id: updatedTask.id });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ msg: "Internal server error", error });
+    }
+  },
+      delete: async (req, res) => {
+    try {
+      const { id } = req.params;
 
-            await prisma.task.delete({
-                where: { id: Number(id) }
-            });
+      // Busca antes de deletar, pra saber o título e inspetor
+      const task = await prisma.task.findUnique({ where: { id: Number(id) } });
 
-            return res.status(200).json({
-                msg: "Task deleted successfully"
-            });
-        } catch (error) {
+      await prisma.task.delete({ where: { id: Number(id) } });
 
-            console.log(error);
-            return res.status(500).json({
-                msg: "Internal server error",
-            });
-        }
+      // 🔹 Registra no histórico
+      if (task) {
+        await prisma.history.create({
+          data: {
+            userId: Number(task.inspectorId),
+            action: "Deletou uma tarefa",
+            entityType: "Task",
+            entityId: task.id,
+            description: `Tarefa "${task.title}" foi deletada`,
+          },
+        });
+      }
+
+      return res.status(200).json({ msg: "Task deleted successfully" });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ msg: "Internal server error" });
+    }
     }, 
 
     getByInspetor: async (req, res) => {

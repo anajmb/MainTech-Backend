@@ -4,37 +4,45 @@ const prisma = new PrismaClient();
 
 const servicesOrdersController = {
 
-    create: async (req, res) => {
-        try {
-            const { machineId, priority, payload } = req.body;
+     create: async (req, res) => {
+    try {
+      const { machineId, priority, payload, maintainerId } = req.body;
 
-            if (!machineId || !priority || payload === undefined) {
-                return res.status(400).json({
-                    msg: "MachineId, priority, and payload are required"
-                });
-            }
+      if (!machineId || !priority || payload === undefined || !maintainerId) {
+        return res.status(400).json({
+          msg: "MachineId, priority, payload and maintainerId are required",
+        });
+      }
 
-            const serviceOrder = await prisma.servicesOrders.create({
-                data: {
-                    machineId: machineId,
-                    priority: priority,
-                    payload: payload || [],
-                    status: 'PENDING'
-                }
-            });
+      const serviceOrder = await prisma.servicesOrders.create({
+        data: {
+          machineId,
+          priority,
+          payload: payload || [],
+          status: "PENDING",
+        },
+      });
 
-            return res.status(201).json({
-                msg: "Service order created succesfully",
-                id: serviceOrder.id
-            });
+      // 🔹 Registra no histórico
+      await prisma.history.create({
+        data: {
+          userId: Number(maintainerId),
+          action: "Criou uma ordem de serviço",
+          entityType: "ServiceOrder",
+          entityId: serviceOrder.id,
+          description: `Ordem de serviço criada para a máquina ${machineId}`,
+        },
+      });
 
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({
-                msg: "Internal server error"
-            });
-        }
-    },
+      return res.status(201).json({
+        msg: "Service order created successfully",
+        id: serviceOrder.id,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ msg: "Internal server error" });
+    }
+  },
 
     getAll: async (req, res) => {
         try {

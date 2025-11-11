@@ -35,4 +35,7 @@ router.use("/auth", passwordRouter);
 const serviceOrdersRouter = require("./serviceOrdersRouter");
 router.use("/serviceOrders", serviceOrdersRouter);
 
+const historyRouter = require("./historyRouter");
+router.use("/history", historyRouter);
+
 module.exports = router;
