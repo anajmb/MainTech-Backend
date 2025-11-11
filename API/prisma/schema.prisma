@@ -123,8 +123,9 @@ model ServicesOrders {
   machineId Int
   priority  Priority
   status    ReportStatus @default(PENDING)
-
   payload Json?
+  inspectorId   Int?
+  inspectorName String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

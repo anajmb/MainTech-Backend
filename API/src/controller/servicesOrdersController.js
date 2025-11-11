@@ -4,45 +4,42 @@ const prisma = new PrismaClient();
 
 const servicesOrdersController = {
 
-     create: async (req, res) => {
-    try {
-      const { machineId, priority, payload, maintainerId } = req.body;
+    create: async (req, res) => {
+        try {
+            // --- MUDANÇA 1: Ler os novos campos do req.body ---
+            const { machineId, priority, payload, inspectorId, inspectorName } = req.body;
 
-      if (!machineId || !priority || payload === undefined || !maintainerId) {
-        return res.status(400).json({
-          msg: "MachineId, priority, payload and maintainerId are required",
-        });
-      }
+            // --- MUDANÇA 2: Adicionar os novos campos na validação ---
+            if (!machineId || !priority || payload === undefined || !inspectorId || !inspectorName) {
+                return res.status(400).json({
+                    msg: "MachineId, priority, payload, inspectorId, and inspectorName are required"
+                });
+            }
 
-      const serviceOrder = await prisma.servicesOrders.create({
-        data: {
-          machineId,
-          priority,
-          payload: payload || [],
-          status: "PENDING",
-        },
-      });
+            const serviceOrder = await prisma.servicesOrders.create({
+                data: {
+                    machineId: machineId,
+                    priority: priority,
+                    payload: payload || [],
+                    status: 'PENDING',
+                    // --- MUDANÇA 3: Salvar os novos campos no banco ---
+                    inspectorId: inspectorId,
+                    inspectorName: inspectorName
+                }
+            });
 
-      // 🔹 Registra no histórico
-      await prisma.history.create({
-        data: {
-          userId: Number(maintainerId),
-          action: "Criou uma ordem de serviço",
-          entityType: "ServiceOrder",
-          entityId: serviceOrder.id,
-          description: `Ordem de serviço criada para a máquina ${machineId}`,
-        },
-      });
+            return res.status(201).json({
+                msg: "Service order created succesfully",
+                id: serviceOrder.id
+            });
 
-      return res.status(201).json({
-        msg: "Service order created successfully",
-        id: serviceOrder.id,
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({ msg: "Internal server error" });
-    }
-  },
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({
+                msg: "Internal server error"
+            });
+        }
+    },
 
     getAll: async (req, res) => {
         try {
@@ -55,6 +52,9 @@ const servicesOrdersController = {
                     payload: true,
                     createdAt: true,
                     updatedAt: true
+                    // Se quiser que o getAll retorne os dados do inspetor, adicione aqui:
+                    // inspectorId: true,
+                    // inspectorName: true
                 }
             });
 
@@ -74,6 +74,8 @@ const servicesOrdersController = {
 
             const serviceOrder = await prisma.servicesOrders.findUnique({
                 where: { id: Number(id) }
+                // Se quiser que o getUnique também puxe os dados do inspetor,
+                // você pode adicionar um 'include' aqui, se houver a relação.
             });
 
             if (!serviceOrder) {
@@ -96,9 +98,8 @@ const servicesOrdersController = {
     try {
         const { id } = req.params;
 
-        // Quando tiver relação com o mantenedor, basta ajustar aqui.
         const orders = await prisma.servicesOrders.findMany({
-            where: {}, // depois podemos filtrar por mantenedor se houver ligação
+            where: {}, 
             orderBy: { updatedAt: "desc" },
         });
 
