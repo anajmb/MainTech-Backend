@@ -51,10 +51,10 @@ const servicesOrdersController = {
                     priority: true,
                     payload: true,
                     createdAt: true,
-                    updatedAt: true
-                    // Se quiser que o getAll retorne os dados do inspetor, adicione aqui:
-                    // inspectorId: true,
-                    // inspectorName: true
+                    updatedAt: true,
+                    // --- ADICIONE ESTAS DUAS LINHAS ---
+                    inspectorId: true,
+                    inspectorName: true
                 }
             });
 
@@ -67,15 +67,13 @@ const servicesOrdersController = {
             });
         }
     },
-
     getUnique: async (req, res) => {
         try {
             const { id } = req.params;
 
             const serviceOrder = await prisma.servicesOrders.findUnique({
                 where: { id: Number(id) }
-                // Se quiser que o getUnique também puxe os dados do inspetor,
-                // você pode adicionar um 'include' aqui, se houver a relação.
+                // --- REMOVA O BLOCO 'include' DAQUI ---
             });
 
             if (!serviceOrder) {
@@ -95,20 +93,20 @@ const servicesOrdersController = {
     },
 
     getByManutentor: async (req, res) => {
-    try {
-        const { id } = req.params;
+        try {
+            const { id } = req.params;
 
-        const orders = await prisma.servicesOrders.findMany({
-            where: {}, 
-            orderBy: { updatedAt: "desc" },
-        });
+            const orders = await prisma.servicesOrders.findMany({
+                where: {},
+                orderBy: { updatedAt: "desc" },
+            });
 
-        return res.status(200).json(orders);
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ msg: "Internal server error", error });
-    }
-},
+            return res.status(200).json(orders);
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ msg: "Internal server error", error });
+        }
+    },
 }
 
 module.exports = servicesOrdersController;
