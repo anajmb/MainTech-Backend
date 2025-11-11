@@ -59,45 +59,45 @@ const machinesController = {
         }
     },
 
-      updateTemperature: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { temperature } = req.body;
+    updateTemperature: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { temperature } = req.body;
 
-      if (temperature === undefined) {
-        return res.status(400).json({
-          msg: "Temperature field is required in the body"
-        });
-      }
+            if (temperature === undefined) {
+                return res.status(400).json({
+                    msg: "Temperature field is required in the body"
+                });
+            }
 
-      const temp = parseFloat(temperature);
+            const temp = parseFloat(temperature);
 
-      if (isNaN(temp) || temp < -10 || temp > 100) {
-        return res.status(400).json({
-          msg: "Invalid temperature value"
-        });
-      }
+            if (isNaN(temp) || temp < -10 || temp > 100) {
+                return res.status(400).json({
+                    msg: "Invalid temperature value"
+                });
+            }
 
-      const updatedMachine = await prisma.machine.update({
-        where: { id: Number(id) },
-        data: { temperature: temp }
-      });
+            const updatedMachine = await prisma.machine.update({
+                where: { id: Number(id) },
+                data: { temperature: temp }
+            });
 
-      return res.status(200).json({
-        temperature: updatedMachine.temperature
-      });
+            return res.status(200).json({
+                temperature: updatedMachine.temperature
+            });
 
-    } catch (error) {
-      console.log(error);
-      if (error.code === 'P2025') {
-        return res.status(404).json({ msg: "Machine not found" });
-      }
-      return res.status(500).json({
-        msg: "Internal server error",
-        error: error.message
-      });
-    }
-  },
+        } catch (error) {
+            console.log(error);
+            if (error.code === 'P2025') {
+                return res.status(404).json({ msg: "Machine not found" });
+            }
+            return res.status(500).json({
+                msg: "Internal server error",
+                error: error.message
+            });
+        }
+    },
 
     getAll: async (req, res) => {
         try {
@@ -137,84 +137,100 @@ const machinesController = {
                 }
             });
 
-if (!machine) {
-    return res.status(404).json({
-        msg: "Machine not found"
-    });
-}
+            if (!machine) {
+                return res.status(404).json({
+                    msg: "Machine not found"
+                });
+            }
 
-return res.status(200).json(machine);
+            return res.status(200).json(machine);
 
         } catch (error) {
 
-    console.log(error);
-    return res.status(500).json({
-        msg: "Internal server error"
-    });
-}
-    },
-
-update: async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, description, location, sets, tasks } = req.body;
-
-        if (!name || !description || !location || !sets) {
-            return res.status(400).json({
-                msg: "Name, description, location and sets are required"
+            console.log(error);
+            return res.status(500).json({
+                msg: "Internal server error"
             });
         }
+    },
 
-        const qrData = { id, name, description, location };
-        const qrCode = await QRCode.toDataURL(JSON.stringify(qrData));
+    update: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { name, description, location, sets, tasks } = req.body;
 
-        const machine = await prisma.machine.update({
-            where: { id: Number(id) },
-            data: {
-                name, description, location, qrCode,
-                sets: {
-                    set: sets?.map(id => ({ id })) || []
-                },
-                tasks: {
-                    set: tasks?.map(id => ({ id })) || []
+            if (!name || !description || !location || !sets) {
+                return res.status(400).json({
+                    msg: "Name, description, location and sets are required"
+                });
+            }
+
+            const qrData = { id, name, description, location };
+            const qrCode = await QRCode.toDataURL(JSON.stringify(qrData));
+
+            const machine = await prisma.machine.update({
+                where: { id: Number(id) },
+                data: {
+                    name, description, location, qrCode,
+                    sets: {
+                        set: sets?.map(id => ({ id })) || []
+                    },
+                    tasks: {
+                        set: tasks?.map(id => ({ id })) || []
+                    }
                 }
-            }
-        });
+            });
 
-        return res.status(200).json({
-            msg: "Machine updated successfully"
-        });
+            return res.status(200).json({
+                msg: "Machine updated successfully"
+            });
 
-    } catch (error) {
+        } catch (error) {
 
-        console.log(error);
-        return res.status(500).json({
-            msg: "Internal server error",
-            error
-        });
-    }
-},
-
-        delete: async (req, res) => {
-            try {
-                const { id } = req.params;
-
-                await prisma.machine.delete({
-                    where: { id: Number(id) }
-                });
-
-                return res.status(200).json({
-                    msg: "Machine deleted successfully"
-                });
-
-            } catch (error) {
-
-                console.log(error);
-                return res.status(500).json({
-                    msg: "Internal server error"
-                });
-            }
+            console.log(error);
+            return res.status(500).json({
+                msg: "Internal server error",
+                error
+            });
         }
+    },
+
+    delete: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const machineId = Number(id);
+
+            await prisma.$transaction([
+                prisma.task.deleteMany({
+                    where: {
+                        machineId: machineId
+                    }
+                }),
+                prisma.machine.delete({
+                    where: {
+                        id: machineId
+                    }
+                })
+            ]);
+
+            return res.status(200).json({
+                msg: "Machine and associated tasks deleted successfully"
+            });
+
+        } catch (error) {
+
+            console.log(error);
+            if (error.code === 'P2025') {
+                return res.status(404).json({
+                    msg: "Machine not found"
+                });
+            }
+
+            return res.status(500).json({
+                msg: "Internal server error"
+            });
+        }
+    }
 }
 
 module.exports = machinesController;
