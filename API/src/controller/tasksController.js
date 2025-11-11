@@ -103,7 +103,11 @@ const tasksController = {
             const task = await prisma.task.findUnique({
                 where: { id: parseInt(id) },
                 include: {
-                    inspector: true,
+                    inspector: {
+                        include: {
+                            person: true
+                        }
+                    },
                     machine: true
                 },
             })
