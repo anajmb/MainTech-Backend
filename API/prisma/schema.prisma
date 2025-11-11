@@ -130,7 +130,7 @@ model ServicesOrders {
 
   @@map("inspection_reports")
 }
-
+  
 enum Role {
   INSPECTOR
   MAINTAINER
