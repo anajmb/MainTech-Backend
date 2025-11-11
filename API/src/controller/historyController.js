@@ -25,7 +25,7 @@ const historyController = {
   getUserHistory: async (req, res) => {
     try {
       const { id } = req.params;
-      const user = await prisma.employee.findUnique({ where: { id: Number(id) } });
+      const user = await prisma.employees.findUnique({ where: { id: Number(id) } });
 
       if (!user) {
         return res.status(404).json({ msg: "Usuário não encontrado." });
