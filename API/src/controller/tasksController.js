@@ -164,7 +164,26 @@ const tasksController = {
                 msg: "Internal server error",
             });
         }
+    }, 
+
+    getByInspetor: async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const tasks = await prisma.task.findMany({
+            where: { inspectorId: Number(id) },
+            include: {
+                machine: true,
+            },
+            orderBy: { updateDate: "desc" }, // últimas primeiro
+        });
+
+        return res.status(200).json(tasks);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ msg: "Internal server error", error });
     }
+},
 }
 
 module.exports = tasksController;

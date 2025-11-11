@@ -15,4 +15,6 @@ router.put('/update/:id', (req, res) => tasksController.update(req, res));
 
 router.delete('/delete/:id', (req, res) => tasksController.delete(req, res));
 
+router.get('/get/inspetor/:id', (req, res) => tasksController.getByInspetor(req, res));
+
 module.exports = router;
