@@ -17,11 +17,11 @@ model Team {
 }
 
 model Employees {
-  id   Int    @id @default(autoincrement())
-  name String
-  cpf  String @unique
-  role Role
-  photo       String?
+  id        Int       @id @default(autoincrement())
+  name      String
+  cpf       String    @unique
+  role      Role
+  photo     String?
   email     String?   @unique
   phone     String?
   password  String?
@@ -35,6 +35,7 @@ model Employees {
   maintainer  Maintainer?
   admin       Admin?
   memberships TeamMember[]
+  histories   History[]
 }
 
 model TeamMember {
@@ -119,8 +120,8 @@ model Subsets {
 model ServicesOrders {
   id Int @id @default(autoincrement())
 
-  machineId Int 
-  priority  Priority  
+  machineId Int
+  priority  Priority
   status    ReportStatus @default(PENDING)
 
   payload Json?
@@ -130,7 +131,18 @@ model ServicesOrders {
 
   @@map("inspection_reports")
 }
-  
+
+model History {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  action      String
+  entityType  String
+  entityId    Int?
+  description String?
+  createdAt   DateTime  @default(now())
+  user        Employees @relation(fields: [userId], references: [id])
+}
+
 enum Role {
   INSPECTOR
   MAINTAINER
@@ -159,4 +171,3 @@ enum ReportStatus {
   IN_PROGRESS
   COMPLETED
 }
-
