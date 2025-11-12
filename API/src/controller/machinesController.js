@@ -146,10 +146,10 @@ const machinesController = {
                 await prisma.history.create({
                     data: {
                         userId: Number(userId),
-                        action: "Scanned QR Code",
-                        entityType: "Machine",
+                        action: "Escaneou um QR code",
+                        entityType: "Escaneado",
                         entityId: machine.id,
-                        description: `O usuário escaneou o QR code da máquina "${machine.name}"`,
+                        description: `O usuário escaneou o QR da ${machine.name}`,
                     },
                 });
             }

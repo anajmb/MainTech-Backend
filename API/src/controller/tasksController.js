@@ -160,7 +160,7 @@ const tasksController = {
             action: "Deletou uma tarefa",
             entityType: "Task",
             entityId: task.id,
-            description: `Tarefa "${task.title}" foi deletada`,
+            description: `Tarefa ${task.title} foi deletada`,
           },
         });
       }

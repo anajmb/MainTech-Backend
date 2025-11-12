@@ -38,7 +38,7 @@ const historyController = {
         history = await prisma.history.findMany({
           where: {
             userId: Number(id),
-            entityType: { in: ["Task", "QRCode"] },
+            entityType: { in: ["Task", "QRCode", "Escaneado", "Modificado"] },
           },
           orderBy: { createdAt: "desc" },
         });
@@ -49,7 +49,15 @@ const historyController = {
         history = await prisma.history.findMany({
           where: {
             userId: Number(id),
-            entityType: "ServiceOrder",
+            entityType: { in: ["ServiceOrder", "Modificado"] },
+          },
+          orderBy: { createdAt: "desc" },
+        });
+      }
+      else if (user.role === "ADMIN") {
+        history = await prisma.history.findMany({
+          where: {
+            userId: Number(id),
           },
           orderBy: { createdAt: "desc" },
         });
