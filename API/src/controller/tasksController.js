@@ -14,17 +14,6 @@ const tasksController = {
         data: { title, inspectorId, machineId: machineId || null, status: status || "PENDING", description, expirationDate },
       });
 
-      // 🔹 Registra no histórico
-      await prisma.history.create({
-        data: {
-          userId: Number(inspectorId),
-          action: "Criou uma tarefa",
-          entityType: "Task",
-          entityId: task.id,
-          description: `Criou a tarefa "${title}"`,
-        },
-      });
-
       return res.status(201).json({ msg: "Task created successfully", id: task.id });
     } catch (error) {
       console.log(error);
@@ -142,9 +131,9 @@ const tasksController = {
         data: {
           userId: Number(inspectorId),
           action: "Atualizou uma tarefa",
-          entityType: "Task",
+          entityType: "Modificado",
           entityId: Number(id),
-          description: `Tarefa "${title}" atualizada para status "${status}"`,
+          description: `Tarefa ${title} atualizada para status ${status}`,
         },
       });
 

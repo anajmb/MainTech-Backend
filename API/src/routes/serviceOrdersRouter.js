@@ -9,6 +9,8 @@ router.get('/get', (req, res) => servicesOrdersController.getAll(req, res));
 
 router.get('/getUnique/:id', (req, res) => servicesOrdersController.getUnique(req, res));
 
-router.get('/get/manutentor/:id', (req, res) => servicesOrdersController.getByManutentor(req, res))
+router.get('/get/manutentor/:id', (req, res) => servicesOrdersController.getByManutentor(req, res));
+
+router.put('/update/:id', (req, res) => servicesOrdersController.update(req, res));
 
 module.exports = router;
