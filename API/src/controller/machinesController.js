@@ -154,7 +154,7 @@ const machinesController = {
         }
     },
 
-   update: async (req, res) => {
+  update: async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body;
@@ -169,25 +169,27 @@ const machinesController = {
       return res.status(400).json({ msg: "No data provided for update." });
     }
 
-    // Se houver name/description/location, atualiza também o QRCode
-    let qrCode = undefined;
-    if (data.name || data.description || data.location) {
-      const existing = await prisma.machine.findUnique({ where: { id: Number(id) } });
-      if (!existing) return res.status(404).json({ msg: "Machine not found." });
+    // Busca máquina existente (para evitar crash se não achar)
+    const existing = await prisma.machine.findUnique({ where: { id: Number(id) } });
+    if (!existing) {
+      return res.status(404).json({ msg: "Machine not found." });
+    }
 
+    // 🔹 Atualiza QRCode se name, description ou location foram alterados
+    if (data.name || data.description || data.location) {
       const qrData = {
-        id,
-        name: data.name || existing.name,
-        description: data.description || existing.description,
-        location: data.location || existing.location,
+        id: Number(id),
+        name: data.name ?? existing.name,
+        description: data.description ?? existing.description,
+        location: data.location ?? existing.location,
       };
 
       const QRCodeLib = require("qrcode");
-      qrCode = await QRCodeLib.toDataURL(JSON.stringify(qrData));
+      const qrCode = await QRCodeLib.toDataURL(JSON.stringify(qrData));
       data.qrCode = qrCode;
     }
 
-    // Se houver sets/tasks, ajusta o formato para o Prisma
+    // 🔹 Se houver sets/tasks, ajusta para formato Prisma
     if (data.sets) {
       data.sets = { set: data.sets.map(id => ({ id })) };
     }
@@ -195,6 +197,7 @@ const machinesController = {
       data.tasks = { set: data.tasks.map(id => ({ id })) };
     }
 
+    // 🔹 Atualiza no banco (parcialmente)
     const updatedMachine = await prisma.machine.update({
       where: { id: Number(id) },
       data,
