@@ -125,96 +125,103 @@ const machinesController = {
     getUnique: async (req, res) => {
         try {
             const { id } = req.params;
+            const { userId } = req.query; // 👈 o app envia o ID do usuário logado
+
             const machine = await prisma.machine.findUnique({
                 where: { id: Number(id) },
                 include: {
                     sets: {
-                        include: {
-                            subsets: true
-                        }
+                        include: { subsets: true },
                     },
-                    tasks: true
-                }
+                    tasks: true,
+                },
             });
 
             if (!machine) {
-                return res.status(404).json({
-                    msg: "Machine not found"
+                return res.status(404).json({ msg: "Machine not found" });
+            }
+
+            // 🔹 Cria histórico automático se o userId vier na requisição
+            if (userId) {
+                await prisma.history.create({
+                    data: {
+                        userId: Number(userId),
+                        action: "Scanned QR Code",
+                        entityType: "Machine",
+                        entityId: machine.id,
+                        description: `O usuário escaneou o QR code da máquina "${machine.name}"`,
+                    },
                 });
             }
 
             return res.status(200).json(machine);
-
         } catch (error) {
-
-            console.log(error);
-            return res.status(500).json({
-                msg: "Internal server error"
-            });
+            console.error(error);
+            return res.status(500).json({ msg: "Internal server error" });
         }
     },
 
-  update: async (req, res) => {
-  try {
-    const { id } = req.params;
-    const data = req.body;
+    update: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const data = req.body;
 
-    // Verifica se o ID foi enviado
-    if (!id) {
-      return res.status(400).json({ msg: "Machine ID is required." });
-    }
+            // Verifica se o ID foi enviado
+            if (!id) {
+                return res.status(400).json({ msg: "Machine ID is required." });
+            }
 
-    // Verifica se foi enviado ao menos 1 campo para atualizar
-    if (!data || Object.keys(data).length === 0) {
-      return res.status(400).json({ msg: "No data provided for update." });
-    }
+            // Verifica se foi enviado ao menos 1 campo para atualizar
+            if (!data || Object.keys(data).length === 0) {
+                return res.status(400).json({ msg: "No data provided for update." });
+            }
 
-    // Busca máquina existente (para evitar crash se não achar)
-    const existing = await prisma.machine.findUnique({ where: { id: Number(id) } });
-    if (!existing) {
-      return res.status(404).json({ msg: "Machine not found." });
-    }
+            // Busca máquina existente (para evitar crash se não achar)
+            const existing = await prisma.machine.findUnique({ where: { id: Number(id) } });
+            if (!existing) {
+                return res.status(404).json({ msg: "Machine not found." });
+            }
 
-    // 🔹 Atualiza QRCode se name, description ou location foram alterados
-    if (data.name || data.description || data.location) {
-      const qrData = {
-        id: Number(id),
-        name: data.name ?? existing.name,
-        description: data.description ?? existing.description,
-        location: data.location ?? existing.location,
-      };
+            // 🔹 Atualiza QRCode se name, description ou location foram alterados
+            if (data.name || data.description || data.location) {
+                const qrData = {
+                    id: Number(id),
+                    name: data.name ?? existing.name,
+                    description: data.description ?? existing.description,
+                    location: data.location ?? existing.location,
+                };
 
-      const QRCodeLib = require("qrcode");
-      const qrCode = await QRCodeLib.toDataURL(JSON.stringify(qrData));
-      data.qrCode = qrCode;
-    }
+                const QRCodeLib = require("qrcode");
+                const qrCode = await QRCodeLib.toDataURL(JSON.stringify(qrData));
+                data.qrCode = qrCode;
+            }
 
-    // 🔹 Se houver sets/tasks, ajusta para formato Prisma
-    if (data.sets) {
-      data.sets = { set: data.sets.map(id => ({ id })) };
-    }
-    if (data.tasks) {
-      data.tasks = { set: data.tasks.map(id => ({ id })) };
-    }
+            // 🔹 Se houver sets/tasks, ajusta para formato Prisma
+            if (data.sets) {
+                data.sets = { set: data.sets.map(id => ({ id })) };
+            }
+            if (data.tasks) {
+                data.tasks = { set: data.tasks.map(id => ({ id })) };
+            }
 
-    // 🔹 Atualiza no banco (parcialmente)
-    const updatedMachine = await prisma.machine.update({
-      where: { id: Number(id) },
-      data,
-    });
+            // 🔹 Atualiza no banco (parcialmente)
+            const updatedMachine = await prisma.machine.update({
+                where: { id: Number(id) },
+                data,
+            });
 
-    return res.status(200).json({
-      msg: "Machine updated successfully",
-      machine: updatedMachine,
-    });
-  } catch (error) {
-    console.error("Erro ao atualizar máquina:", error);
-    return res.status(500).json({
-      msg: "Internal server error",
-      error: error.message,
-    });
-  }
-},
+            return res.status(200).json({
+                msg: "Machine updated successfully",
+                machine: updatedMachine,
+            });
+        } catch (error) {
+            console.error("Erro ao atualizar máquina:", error);
+            return res.status(500).json({
+                msg: "Internal server error",
+                error: error.message,
+            });
+        }
+    },
 
     delete: async (req, res) => {
         try {
