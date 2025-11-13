@@ -45,6 +45,7 @@ const servicesOrdersController = {
                 }
             });
 
+
             // Loga a criação
             await logHistory(
                 inspectorId, 
@@ -68,7 +69,6 @@ const servicesOrdersController = {
 
     getAll: async (req, res) => {
         try {
-            // ❗️ Assumindo que seu middleware de auth coloca o usuário em 'req.user'
             const { role, id: userId } = req.user; 
             
             let whereClause = {};
