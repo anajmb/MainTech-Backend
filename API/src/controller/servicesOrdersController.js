@@ -1,18 +1,16 @@
 const { PrismaClient } = require("@prisma/client");
-const { getUnique } = require("./teamController");
+const { getUnique } = require("./teamController"); // (Este import parece não estar sendo usado)
 const prisma = new PrismaClient();
 
 const servicesOrdersController = {
 
     create: async (req, res) => {
         try {
-            // --- MUDANÇA 1: Ler os novos campos do req.body ---
-            const { machineId, priority, payload, inspectorId, inspectorName } = req.body;
+            const { machineId, priority, payload, inspectorId, inspectorName, machineName, location } = req.body;
 
-            // --- MUDANÇA 2: Adicionar os novos campos na validação ---
-            if (!machineId || !priority || payload === undefined || !inspectorId || !inspectorName) {
+            if (!machineId || !priority || payload === undefined || !inspectorId || !inspectorName || !machineName || !location) {
                 return res.status(400).json({
-                    msg: "MachineId, priority, payload, inspectorId, and inspectorName are required"
+                    msg: "MachineId, priority, payload, inspectorId, inspectorName, machineName, and location are required"
                 });
             }
 
@@ -22,9 +20,10 @@ const servicesOrdersController = {
                     priority: priority,
                     payload: payload || [],
                     status: 'PENDING',
-                    // --- MUDANÇA 3: Salvar os novos campos no banco ---
                     inspectorId: inspectorId,
-                    inspectorName: inspectorName
+                    inspectorName: inspectorName,
+                    machineName: machineName,
+                    location: location
                 }
             });
 
@@ -43,7 +42,6 @@ const servicesOrdersController = {
 
     getAll: async (req, res) => {
         try {
-
             const serviceOrders = await prisma.servicesOrders.findMany({
                 select: {
                     id: true,
@@ -52,9 +50,10 @@ const servicesOrdersController = {
                     payload: true,
                     createdAt: true,
                     updatedAt: true,
-                    // --- ADICIONE ESTAS DUAS LINHAS ---
                     inspectorId: true,
-                    inspectorName: true
+                    inspectorName: true,
+                    machineName: true,
+                    location: true
                 }
             });
 
@@ -67,13 +66,13 @@ const servicesOrdersController = {
             });
         }
     },
+
     getUnique: async (req, res) => {
         try {
             const { id } = req.params;
 
             const serviceOrder = await prisma.servicesOrders.findUnique({
                 where: { id: Number(id) }
-                // --- REMOVA O BLOCO 'include' DAQUI ---
             });
 
             if (!serviceOrder) {
@@ -111,17 +110,16 @@ const servicesOrdersController = {
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { machineId, priority, payload, inspectorId, inspectorName, status } = req.body;
+            const { machineId, priority, payload, inspectorId, inspectorName, status, machineName, location } = req.body;
 
             const updatedOrder = await prisma.servicesOrders.update({
                 where: { id: Number(id) },
-                data: { machineId, priority, payload, inspectorId, inspectorName, status },
+                data: { machineId, priority, payload, inspectorId, inspectorName, status, machineName, location },
             });
 
-            // 🔹 Registra atualização no histórico
             await prisma.history.create({
                 data: {
-                    userId: Number(inspectorId),
+                    userId: Number(inspectorId), 
                     action: "Atualizou uma ordem de serviço",
                     entityType: "Modificado",
                     entityId: Number(id),
@@ -137,6 +135,32 @@ const servicesOrdersController = {
         } catch (error) {
             console.log(error);
             return res.status(500).json({ msg: "Internal server error" });
+        }
+    },
+
+
+    delete: async (req, res) => {
+        try {
+            const { id } = req.params;
+
+            await prisma.servicesOrders.delete({
+                where: { id: Number(id) }
+            });
+
+            return res.status(200).json({
+                msg: "Service order deleted successfully"
+            });
+
+        } catch (error) {
+            console.log(error);
+            if (error.code === 'P2025') { 
+                return res.status(404).json({
+                    msg: "Service order not found"
+                });
+            }
+            return res.status(500).json({
+                msg: "Internal server error"
+            });
         }
     },
 }

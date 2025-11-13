@@ -13,4 +13,6 @@ router.get('/get/manutentor/:id', (req, res) => servicesOrdersController.getByMa
 
 router.put('/update/:id', (req, res) => servicesOrdersController.update(req, res));
 
+router.delete('/delete/:id', (req, res) => servicesOrdersController.delete(req, res));
+
 module.exports = router;

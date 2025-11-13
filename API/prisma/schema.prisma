@@ -120,10 +120,12 @@ model Subsets {
 model ServicesOrders {
   id Int @id @default(autoincrement())
 
-  machineId Int
-  priority  Priority
-  status    ReportStatus @default(PENDING)
-  payload Json?
+  machineId     Int
+  machineName   String?
+  location String?
+  priority      Priority
+  status        ReportStatus @default(PENDING)
+  payload       Json?
   inspectorId   Int?
   inspectorName String?
 
