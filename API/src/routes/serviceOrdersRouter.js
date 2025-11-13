@@ -12,13 +12,13 @@ router.post('/create',
 
 router.get('/get', 
     auth, 
-    authorize(['ADMIN', 'MANUTENTOR', 'INSPECTOR']), 
+    authorize(['ADMIN', 'MAINTAINER', 'INSPECTOR']), 
     servicesOrdersController.getAll
 );
 
 router.get('/getUnique/:id', 
     auth, 
-    authorize(['ADMIN', 'MANUTENTOR', 'INSPECTOR']), 
+    authorize(['ADMIN', 'MAINTAINER', 'INSPECTOR']), 
     servicesOrdersController.getUnique
 );
 
