@@ -1,6 +1,23 @@
 const { PrismaClient } = require("@prisma/client");
-const { getUnique } = require("./teamController"); // (Este import parece não estar sendo usado)
 const prisma = new PrismaClient();
+
+// Função auxiliar para registrar o histórico (já que você tem o model History)
+const logHistory = async (userId, action, entityId, description) => {
+    try {
+        await prisma.history.create({
+            data: {
+                userId: Number(userId),
+                action: action,
+                entityType: "Modificado", // Ou o tipo apropriado
+                entityId: Number(entityId),
+                description: description
+            }
+        });
+    } catch (error) {
+        // Loga o erro, mas não para a execução principal
+        console.error("Falha ao registrar histórico:", error);
+    }
+};
 
 const servicesOrdersController = {
 
@@ -8,6 +25,7 @@ const servicesOrdersController = {
         try {
             const { machineId, priority, payload, inspectorId, inspectorName, machineName, location } = req.body;
 
+            // Validação (seu código original)
             if (!machineId || !priority || payload === undefined || !inspectorId || !inspectorName || !machineName || !location) {
                 return res.status(400).json({
                     msg: "MachineId, priority, payload, inspectorId, inspectorName, machineName, and location are required"
@@ -19,13 +37,21 @@ const servicesOrdersController = {
                     machineId: machineId,
                     priority: priority,
                     payload: payload || [],
-                    status: 'PENDING',
+                    status: 'PENDING', // Status inicial correto
                     inspectorId: inspectorId,
                     inspectorName: inspectorName,
                     machineName: machineName,
                     location: location
                 }
             });
+
+            // Loga a criação
+            await logHistory(
+                inspectorId, 
+                "Criou Ordem de Serviço", 
+                serviceOrder.id, 
+                `OS #${serviceOrder.id} criada para ${machineName}`
+            );
 
             return res.status(201).json({
                 msg: "Service order created succesfully",
@@ -42,18 +68,38 @@ const servicesOrdersController = {
 
     getAll: async (req, res) => {
         try {
+            // ❗️ Assumindo que seu middleware de auth coloca o usuário em 'req.user'
+            const { role, id: userId } = req.user; 
+            
+            let whereClause = {};
+
+            if (role === 'INSPECTOR') {
+                whereClause = { inspectorId: userId };
+            } else if (role === 'MAINTAINER') {
+                whereClause = { 
+                    maintainerId: userId,
+                    status: { not: 'COMPLETED' }
+                };
+            }
+
             const serviceOrders = await prisma.servicesOrders.findMany({
+                where: whereClause,
                 select: {
                     id: true,
                     machineId: true,
+                    machineName: true,
+                    location: true,
                     priority: true,
                     payload: true,
                     createdAt: true,
                     updatedAt: true,
                     inspectorId: true,
                     inspectorName: true,
-                    machineName: true,
-                    location: true
+                    maintainerName: true, 
+                    status: true 
+                },
+                orderBy: {
+                    updatedAt: 'desc'
                 }
             });
 
@@ -70,9 +116,9 @@ const servicesOrdersController = {
     getUnique: async (req, res) => {
         try {
             const { id } = req.params;
-
             const serviceOrder = await prisma.servicesOrders.findUnique({
                 where: { id: Number(id) }
+                
             });
 
             if (!serviceOrder) {
@@ -80,9 +126,7 @@ const servicesOrdersController = {
                     msg: "Service order not found"
                 });
             }
-
             return res.status(200).json(serviceOrder);
-
         } catch (error) {
             console.log(error);
             return res.status(500).json({
@@ -91,46 +135,76 @@ const servicesOrdersController = {
         }
     },
 
-    getByManutentor: async (req, res) => {
+    assignMaintainer: async (req, res) => {
         try {
-            const { id } = req.params;
+            const { id } = req.params; 
+            const { maintainerId, maintainerName } = req.body;
+            const adminId = req.user.id; 
 
-            const orders = await prisma.servicesOrders.findMany({
-                where: {},
-                orderBy: { updatedAt: "desc" },
-            });
-
-            return res.status(200).json(orders);
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({ msg: "Internal server error", error });
-        }
-    },
-
-    update: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const { machineId, priority, payload, inspectorId, inspectorName, status, machineName, location } = req.body;
+            if (!maintainerId || !maintainerName) {
+                return res.status(400).json({ msg: "maintainerId e maintainerName são obrigatórios" });
+            }
 
             const updatedOrder = await prisma.servicesOrders.update({
                 where: { id: Number(id) },
-                data: { machineId, priority, payload, inspectorId, inspectorName, status, machineName, location },
-            });
-
-            await prisma.history.create({
                 data: {
-                    userId: Number(inspectorId), 
-                    action: "Atualizou uma ordem de serviço",
-                    entityType: "Modificado",
-                    entityId: Number(id),
-                    description: `Ordem de serviço ${id} atualizada para status ${status}`
+                    maintainerId: Number(maintainerId),
+                    maintainerName: maintainerName,
+                    status: 'ASSIGNED' 
                 }
             });
 
-            return res.status(200).json({
-                msg: "Service order updated successfully",
-                id: updatedOrder.id
+            await logHistory(adminId, "Atribuiu OS", updatedOrder.id, `OS #${id} atribuída a ${maintainerName}`);
+            return res.status(200).json(updatedOrder);
+
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ msg: "Internal server error" });
+        }
+    },
+
+    submitWork: async (req, res) => {
+        try {
+            const { id } = req.params; 
+            const { serviceNotes, materialsUsed } = req.body; 
+            const maintainerId = req.user.id; 
+
+            if (!serviceNotes || !materialsUsed) {
+                return res.status(400).json({ msg: "serviceNotes e materialsUsed são obrigatórios" });
+            }
+
+            const updatedOrder = await prisma.servicesOrders.update({
+                where: { id: Number(id) },
+                data: {
+                    serviceNotes: serviceNotes,
+                    materialsUsed: materialsUsed,
+                    status: 'IN_REVIEW' 
+                }
             });
+
+            await logHistory(maintainerId, "Submeteu Relatório", updatedOrder.id, `Manutenção da OS #${id} submetida para revisão`);
+            return res.status(200).json(updatedOrder);
+
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ msg: "Internal server error" });
+        }
+    },
+
+    approveWork: async (req, res) => {
+        try {
+            const { id } = req.params; 
+            const adminId = req.user.id; 
+
+            const updatedOrder = await prisma.servicesOrders.update({
+                where: { id: Number(id) },
+                data: {
+                    status: 'COMPLETED' 
+                }
+            });
+
+            await logHistory(adminId, "Aprovou OS", updatedOrder.id, `OS #${id} marcada como Concluída`);
+            return res.status(200).json(updatedOrder);
 
         } catch (error) {
             console.log(error);
@@ -142,7 +216,6 @@ const servicesOrdersController = {
     delete: async (req, res) => {
         try {
             const { id } = req.params;
-
             await prisma.servicesOrders.delete({
                 where: { id: Number(id) }
             });
@@ -150,7 +223,6 @@ const servicesOrdersController = {
             return res.status(200).json({
                 msg: "Service order deleted successfully"
             });
-
         } catch (error) {
             console.log(error);
             if (error.code === 'P2025') { 
@@ -163,6 +235,7 @@ const servicesOrdersController = {
             });
         }
     },
+
 }
 
 module.exports = servicesOrdersController;

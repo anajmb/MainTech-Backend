@@ -27,6 +27,8 @@ model Employees {
   password  String?
   birthDate DateTime?
 
+  serviceOrdersMaintained ServicesOrders[] @relation("MaintainedBy")
+
   status Status @default(PENDING_SETUP)
 
   createDate  DateTime     @default(now())
@@ -118,16 +120,21 @@ model Subsets {
 }
 
 model ServicesOrders {
-  id Int @id @default(autoincrement())
-
+  id            Int          @id @default(autoincrement())
   machineId     Int
   machineName   String?
-  location String?
+  location      String?
   priority      Priority
   status        ReportStatus @default(PENDING)
   payload       Json?
   inspectorId   Int?
   inspectorName String?
+  maintainerName String?
+  serviceNotes   String?
+  materialsUsed  String?
+
+  maintainerId Int?
+  maintainer   Employees? @relation("MaintainedBy", fields: [maintainerId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -171,6 +178,8 @@ enum Priority {
 
 enum ReportStatus {
   PENDING
+  ASSIGNED
   IN_PROGRESS
+  IN_REVIEW
   COMPLETED
 }
