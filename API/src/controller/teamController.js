@@ -5,27 +5,41 @@ const teamController = {
 
     create: async (req, res) => {
         try {
-            const { name, description } = req.body;
+            const { name, description, members } = req.body;
 
             if (!name || !description) {
-                return res.status(400).json({
-                    msg: "Name and description are required"
-                });
+                return res.status(400).json({ msg: "Nome e descrição são obrigatórios." });
+            }
+
+            let createData = {
+                name,
+                description
+            };
+
+            if (members && Array.isArray(members) && members.length > 0) {
+                createData.members = {
+                    create: members.map((memberId) => ({
+                        personId: Number(memberId)
+                    }))
+                };
             }
 
             const team = await prisma.team.create({
-                data: { name, description }
+                data: createData,
+                include: {
+                    members: {
+                        include: {
+                            person: true
+                        }
+                    }
+                }
             });
 
-            return res.status(201).json({
-                msg: "Team created succesfully",
-                id: team.id
-            });
+            return res.status(201).json({ msg: "Equipe criada com sucesso!", team });
+
         } catch (error) {
             console.log(error);
-            return res.status(500).json({
-                msg: "Internal server error"
-            })
+            return res.status(500).json({ msg: "Erro interno do servidor", error });
         }
     },
 
@@ -43,9 +57,7 @@ const teamController = {
             return res.status(200).json(teams);
         } catch (error) {
             console.log(error);
-            return res.status(500).json({
-                msg: "Internal server error"
-            });
+            return res.status(500).json({ msg: "Erro interno do servidor" });
         }
     },
 
@@ -63,18 +75,11 @@ const teamController = {
                 }
             });
 
-            if (!team) {
-                return res.status(404).json({
-                    msg: "Team not found"
-                });
-            }
+            if (!team) return res.status(404).json({ msg: "Equipe não encontrada" });
 
             return res.status(200).json(team);
         } catch (error) {
-            console.log(error);
-            return res.status(500).json({
-                msg: "Internal server error"
-            });
+            return res.status(500).json({ msg: "Erro interno" });
         }
     },
 

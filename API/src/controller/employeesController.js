@@ -343,6 +343,31 @@ const employeesController = {
     }
   },
 
+    // ✅ Alterar senha do funcionário logado
+  changePassword: async (req, res) => {
+  try {
+    const userId = req.user.id; // vem do token
+    const { currentPassword, newPassword } = req.body;
+
+    const employee = await prisma.employees.findUnique({ where: { id: userId } });
+    if (!employee) return res.status(404).json({ msg: "Usuário não encontrado." });
+
+    const valid = await bcrypt.compare(currentPassword, employee.password);
+    if (!valid) return res.status(401).json({ msg: "Senha atual incorreta." });
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.employees.update({
+      where: { id: userId },
+      data: { password: hashed },
+    });
+
+    return res.json({ msg: "Senha alterada com sucesso!" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ msg: "Erro ao alterar senha." });
+  }
+},
+
   // ✅ Atualizar perfil (sem alterar CPF e data de nascimento)
   update: async (req, res) => {
     try {
