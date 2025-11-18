@@ -117,7 +117,8 @@ const employeesController = {
                 email: employeeFind.email,
                 name: employeeFind.name,
                 role: employeeFind.role,
-                status: employeeFind.status
+                status: employeeFind.status,
+                photo: employeeFind.photo
             };
 
             const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
@@ -129,7 +130,8 @@ const employeesController = {
                     name: employeeFind.name,
                     email: employeeFind.email,
                     role: employeeFind.role,
-                    status: employeeFind.status
+                    status: employeeFind.status,
+                    photo: employeeFind.photo
                 },
                 id: employeeFind.id,
                 msg: "Employee successfully authenticated"
