@@ -9,6 +9,7 @@ router.post("/completeRegister", employeesController.completeSetup);
 router.post("/login", employeesController.login);
 router.get("/get", auth, authorize(["ADMIN"]), employeesController.getAll);
 router.get("/getUnique/:id", auth, employeesController.getUnique);
+router.put("/change-password/:id", auth, employeesController.changePassword);
 router.put("/update/:id", auth, employeesController.update);
 router.delete("/delete/:id", auth, authorize(["ADMIN"]), employeesController.delete);
 
