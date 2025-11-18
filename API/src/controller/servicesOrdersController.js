@@ -48,9 +48,9 @@ const servicesOrdersController = {
 
             // Loga a criação
             await logHistory(
-                inspectorId, 
-                "Criou Ordem de Serviço", 
-                serviceOrder.id, 
+                inspectorId,
+                "Criou Ordem de Serviço",
+                serviceOrder.id,
                 `OS #${serviceOrder.id} criada para ${machineName}`
             );
 
@@ -69,19 +69,18 @@ const servicesOrdersController = {
 
     getAll: async (req, res) => {
         try {
-            const { role, id: userId } = req.user; 
-            
+            const { role, id: userId } = req.user;
+
             let whereClause = {};
 
             if (role === 'INSPECTOR') {
                 whereClause = { inspectorId: userId };
             } else if (role === 'MAINTAINER') {
-                whereClause = { 
+
+                whereClause = {
                     maintainerId: userId,
-                    status: { not: 'COMPLETED' }
                 };
             }
-
             const serviceOrders = await prisma.servicesOrders.findMany({
                 where: whereClause,
                 select: {
@@ -95,8 +94,8 @@ const servicesOrdersController = {
                     updatedAt: true,
                     inspectorId: true,
                     inspectorName: true,
-                    maintainerName: true, 
-                    status: true 
+                    maintainerName: true,
+                    status: true
                 },
                 orderBy: {
                     updatedAt: 'desc'
@@ -118,7 +117,7 @@ const servicesOrdersController = {
             const { id } = req.params;
             const serviceOrder = await prisma.servicesOrders.findUnique({
                 where: { id: Number(id) }
-                
+
             });
 
             if (!serviceOrder) {
@@ -137,9 +136,9 @@ const servicesOrdersController = {
 
     assignMaintainer: async (req, res) => {
         try {
-            const { id } = req.params; 
+            const { id } = req.params;
             const { maintainerId, maintainerName } = req.body;
-            const adminId = req.user.id; 
+            const adminId = req.user.id;
 
             if (!maintainerId || !maintainerName) {
                 return res.status(400).json({ msg: "maintainerId e maintainerName são obrigatórios" });
@@ -150,7 +149,7 @@ const servicesOrdersController = {
                 data: {
                     maintainerId: Number(maintainerId),
                     maintainerName: maintainerName,
-                    status: 'ASSIGNED' 
+                    status: 'ASSIGNED'
                 }
             });
 
@@ -165,9 +164,9 @@ const servicesOrdersController = {
 
     submitWork: async (req, res) => {
         try {
-            const { id } = req.params; 
-            const { serviceNotes, materialsUsed } = req.body; 
-            const maintainerId = req.user.id; 
+            const { id } = req.params;
+            const { serviceNotes, materialsUsed } = req.body;
+            const maintainerId = req.user.id;
 
             if (!serviceNotes || !materialsUsed) {
                 return res.status(400).json({ msg: "serviceNotes e materialsUsed são obrigatórios" });
@@ -178,7 +177,7 @@ const servicesOrdersController = {
                 data: {
                     serviceNotes: serviceNotes,
                     materialsUsed: materialsUsed,
-                    status: 'IN_REVIEW' 
+                    status: 'IN_REVIEW'
                 }
             });
 
@@ -193,13 +192,13 @@ const servicesOrdersController = {
 
     approveWork: async (req, res) => {
         try {
-            const { id } = req.params; 
-            const adminId = req.user.id; 
+            const { id } = req.params;
+            const adminId = req.user.id;
 
             const updatedOrder = await prisma.servicesOrders.update({
                 where: { id: Number(id) },
                 data: {
-                    status: 'COMPLETED' 
+                    status: 'COMPLETED'
                 }
             });
 
@@ -225,7 +224,7 @@ const servicesOrdersController = {
             });
         } catch (error) {
             console.log(error);
-            if (error.code === 'P2025') { 
+            if (error.code === 'P2025') {
                 return res.status(404).json({
                     msg: "Service order not found"
                 });
