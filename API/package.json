@@ -1,16 +1,15 @@
 {
   "dependencies": {
-    "@prisma/client": "^7.0.0",
+    "@prisma/client": "^6.19.0",
     "@sendgrid/mail": "^8.1.6",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "install": "^0.13.0",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^7.0.10",
+    "prisma": "^6.19.0",
     "qrcode": "^1.5.4"
-  },
-  "devDependencies": {
-    "prisma": "^7.0.0"
   }
 }
