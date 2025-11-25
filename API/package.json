@@ -11,6 +11,6 @@
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
-    "prisma": "^7.0.0"
+    "prisma": "^6.19.0"
   }
 }

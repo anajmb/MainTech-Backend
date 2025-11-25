@@ -1,7 +1,9 @@
 // Importa o express
 const express = require('express');
+require('dotenv').config();
+
 const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient() 
+const prisma = new PrismaClient();
 
 const router = express.Router();
 
