@@ -20,6 +20,7 @@ const tasksController = {
       return res.status(500).json({ msg: "Internal server error", error });
     }
   },
+
   getAll: async (req, res) => {
     try {
       const { status } = req.query;
@@ -52,6 +53,7 @@ const tasksController = {
       });
     }
   },
+
   getExpiringSoon: async (req, res) => {
     try {
       const now = new Date();
@@ -60,8 +62,8 @@ const tasksController = {
       const tasks = await prisma.task.findMany({
         where: {
           expirationDate: {
-            gte: now, // gte = Greater Than or Equal (maior ou igual a agora)
-            lte: twentyFourHoursFromNow, // lte = Less Than or Equal (menor ou igual a daqui a 24h)
+            gte: now, 
+            lte: twentyFourHoursFromNow, 
           },
         },
         include: {
@@ -73,7 +75,7 @@ const tasksController = {
           machine: true,
         },
         orderBy: {
-          expirationDate: 'asc', // Ordena as tarefas mais urgentes primeiro
+          expirationDate: 'asc', 
         },
       });
 
@@ -87,6 +89,7 @@ const tasksController = {
       });
     }
   },
+
   getUnique: async (req, res) => {
     try {
       const { id } = req.params;
@@ -112,6 +115,7 @@ const tasksController = {
       });
     }
   },
+
   update: async (req, res) => {
     try {
       const { id } = req.params;
@@ -143,16 +147,15 @@ const tasksController = {
       return res.status(500).json({ msg: "Internal server error", error });
     }
   },
+
   delete: async (req, res) => {
     try {
       const { id } = req.params;
 
-      // Busca antes de deletar, pra saber o título e inspetor
       const task = await prisma.task.findUnique({ where: { id: Number(id) } });
 
       await prisma.task.delete({ where: { id: Number(id) } });
 
-      // 🔹 Registra no histórico
       if (task) {
         await prisma.history.create({
           data: {
@@ -179,11 +182,10 @@ const tasksController = {
       const updatedTask = await prisma.task.update({
         where: { id: Number(id) },
         data: {
-          status: 'COMPLETED' // Define o status como COMPLETED
+          status: 'COMPLETED'
         },
       });
 
-      // Tenta registrar no histórico
       if (updatedTask.inspectorId) {
         await prisma.history.create({
           data: {
@@ -200,7 +202,41 @@ const tasksController = {
 
     } catch (error) {
       console.log(error);
-      if (error.code === 'P2025') { // Erro do Prisma para "Não encontrado"
+      if (error.code === 'P2025') {
+        return res.status(404).json({ msg: "Task not found" });
+      }
+      return res.status(500).json({ msg: "Internal server error", error });
+    }
+  },
+
+  refuseTask: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const updatedTask = await prisma.task.update({
+        where: { id: Number(id) },
+        data: {
+          status: 'PENDING' 
+        },
+      });
+
+      if (updatedTask.inspectorId) {
+        await prisma.history.create({
+          data: {
+            userId: Number(updatedTask.inspectorId), 
+            action: "Recusou a tarefa",
+            entityType: "Modificado",
+            entityId: Number(id),
+            description: `Tarefa ${updatedTask.title} foi recusada e retornou para PENDING`,
+          },
+        });
+      }
+
+      return res.status(200).json({ msg: "Task refused and set to PENDING", id: updatedTask.id });
+
+    } catch (error) {
+      console.log(error);
+      if (error.code === 'P2025') {
         return res.status(404).json({ msg: "Task not found" });
       }
       return res.status(500).json({ msg: "Internal server error", error });
@@ -216,7 +252,7 @@ const tasksController = {
         include: {
           machine: true,
         },
-        orderBy: { updateDate: "desc" }, // últimas primeiro
+        orderBy: { updateDate: "desc" }, 
       });
 
       return res.status(200).json(tasks);
