@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Team {
@@ -120,15 +119,15 @@ model Subsets {
 }
 
 model ServicesOrders {
-  id            Int          @id @default(autoincrement())
-  machineId     Int
-  machineName   String?
-  location      String?
-  priority      Priority
-  status        ReportStatus @default(PENDING)
-  payload       Json?
-  inspectorId   Int?
-  inspectorName String?
+  id             Int          @id @default(autoincrement())
+  machineId      Int
+  machineName    String?
+  location       String?
+  priority       Priority
+  status         ReportStatus @default(PENDING)
+  payload        Json?
+  inspectorId    Int?
+  inspectorName  String?
   maintainerName String?
   serviceNotes   String?
   materialsUsed  String?
