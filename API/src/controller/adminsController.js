@@ -1,5 +1,5 @@
     const { PrismaClient, Prisma } = require("@prisma/client");
-    const prisma = PrismaClient();
+    const prisma = new PrismaClient();
     const bcrypt = require('bcrypt');
 
 
