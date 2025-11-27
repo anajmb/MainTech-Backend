@@ -35,7 +35,7 @@ const servicesOrdersController = {
 
             if (payload === null) {
                 return res.status(200).json({
-                    msg: "Criação da Ordem de Serviço ignorada: O payload fornecido era nulo."
+                    msg: "Criação da Ordem de Serviço: máquina sem avarias"
                 });
             }
 
