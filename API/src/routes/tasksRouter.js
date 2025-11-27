@@ -19,6 +19,5 @@ router.delete('/delete/:id', (req, res) => tasksController.delete(req, res));
 
 router.get('/get/inspetor/:id', (req, res) => tasksController.getByInspetor(req, res));
 
-router.patch('/refuse/:id', (req, res) => tasksController.refuseTask(req, res));
 
 module.exports = router;

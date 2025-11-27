@@ -209,40 +209,6 @@ const tasksController = {
     }
   },
 
-  refuseTask: async (req, res) => {
-    try {
-      const { id } = req.params;
-
-      const updatedTask = await prisma.task.update({
-        where: { id: Number(id) },
-        data: {
-          status: 'PENDING' 
-        },
-      });
-
-      if (updatedTask.inspectorId) {
-        await prisma.history.create({
-          data: {
-            userId: Number(updatedTask.inspectorId), 
-            action: "Recusou a tarefa",
-            entityType: "Modificado",
-            entityId: Number(id),
-            description: `Tarefa ${updatedTask.title} foi recusada e retornou para PENDING`,
-          },
-        });
-      }
-
-      return res.status(200).json({ msg: "Task refused and set to PENDING", id: updatedTask.id });
-
-    } catch (error) {
-      console.log(error);
-      if (error.code === 'P2025') {
-        return res.status(404).json({ msg: "Task not found" });
-      }
-      return res.status(500).json({ msg: "Internal server error", error });
-    }
-  },
-
   getByInspetor: async (req, res) => {
     try {
       const { id } = req.params;

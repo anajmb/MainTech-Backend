@@ -211,6 +211,34 @@ const servicesOrdersController = {
         }
     },
 
+    refuseWork: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const adminId = req.user.id; 
+
+            const updatedOrder = await prisma.servicesOrders.update({
+                where: { id: Number(id) },
+                data: {
+                    status: 'PENDING',
+                    serviceNotes: null, 
+                    materialsUsed: null
+                }
+            });
+
+            await logHistory(
+                adminId,
+                "Recusou OS",
+                updatedOrder.id,
+                `OS #${id} foi recusada e retornou para PENDING`
+            );
+
+            return res.status(200).json(updatedOrder);
+
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ msg: "Internal server error" });
+        }
+    },
 
     delete: async (req, res) => {
         try {
