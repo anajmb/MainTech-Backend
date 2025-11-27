@@ -11,6 +11,14 @@ const teamController = {
                 return res.status(400).json({ msg: "Nome e descrição são obrigatórios." });
             }
 
+            const existingTeam = await prisma.team.findFirst({
+                where: { name: name }
+            });
+
+            if (existingTeam) {
+                return res.status(400).json({ msg: "Já existe uma equipe com esse nome." });
+            }
+
             let createData = {
                 name,
                 description
