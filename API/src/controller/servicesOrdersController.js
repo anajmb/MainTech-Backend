@@ -25,6 +25,14 @@ const servicesOrdersController = {
         try {
             const { machineId, priority, payload, inspectorId, inspectorName, machineName, location } = req.body;
 
+            // --- INÍCIO DA MUDANÇA: Verifica se o payload é "machine ok" para ignorar a criação
+            if (payload === "machine ok") {
+                return res.status(200).json({
+                    msg: "Criação da Ordem de Serviço ignorada: Payload indica que a máquina está OK."
+                });
+            }
+            // --- FIM DA MUDANÇA
+
             if (payload === null) {
                 return res.status(200).json({
                     msg: "Criação da Ordem de Serviço ignorada: O payload fornecido era nulo."
