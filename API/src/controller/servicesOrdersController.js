@@ -25,7 +25,12 @@ const servicesOrdersController = {
         try {
             const { machineId, priority, payload, inspectorId, inspectorName, machineName, location } = req.body;
 
-            // Validação (seu código original)
+            if (payload === null) {
+                return res.status(200).json({
+                    msg: "Criação da Ordem de Serviço ignorada: O payload fornecido era nulo."
+                });
+            }
+
             if (!machineId || !priority || payload === undefined || !inspectorId || !inspectorName || !machineName || !location) {
                 return res.status(400).json({
                     msg: "MachineId, priority, payload, inspectorId, inspectorName, machineName, and location are required"
@@ -214,13 +219,13 @@ const servicesOrdersController = {
     refuseWork: async (req, res) => {
         try {
             const { id } = req.params;
-            const adminId = req.user.id; 
+            const adminId = req.user.id;
 
             const updatedOrder = await prisma.servicesOrders.update({
                 where: { id: Number(id) },
                 data: {
                     status: 'ASSIGNED',
-                    serviceNotes: null, 
+                    serviceNotes: null,
                     materialsUsed: null
                 }
             });
