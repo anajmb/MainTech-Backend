@@ -219,7 +219,7 @@ const servicesOrdersController = {
             const updatedOrder = await prisma.servicesOrders.update({
                 where: { id: Number(id) },
                 data: {
-                    status: 'PENDING',
+                    status: 'ASSIGNED',
                     serviceNotes: null, 
                     materialsUsed: null
                 }
@@ -229,7 +229,7 @@ const servicesOrdersController = {
                 adminId,
                 "Recusou OS",
                 updatedOrder.id,
-                `OS #${id} foi recusada e retornou para PENDING`
+                `OS #${id} foi recusada e retornou para o manutentor`
             );
 
             return res.status(200).json(updatedOrder);
