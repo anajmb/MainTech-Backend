@@ -1,6 +1,23 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+const logHistory = async (userId, action, entityId, description, entityType = "Task") => {
+    try {
+        await prisma.history.create({
+            data: {
+                userId: Number(userId),
+                action: action,
+                entityType: entityType,
+                entityId: Number(entityId),
+                description: description
+            }
+        });
+    } catch (error) {
+        // Loga o erro, mas não para a execução principal
+        console.error("Falha ao registrar histórico:", error);
+    }
+};
+
 const tasksController = {
   create: async (req, res) => {
     try {
@@ -10,9 +27,40 @@ const tasksController = {
         return res.status(400).json({ msg: "Title and inspectorId are required" });
       }
 
+      if (machineId) {
+        const existingTask = await prisma.task.findFirst({
+          where: {
+            machineId: machineId,
+            status: {
+              not: 'COMPLETED'
+            }
+          },
+        });
+
+        if (existingTask) {
+          return res.status(400).json({
+            msg: "Não foi possível criar a tarefa: Já existe uma tarefa ativa associada a esta máquina."
+          });
+        }
+      }
+
       const task = await prisma.task.create({
-        data: { title, inspectorId, machineId: machineId || null, status: status || "PENDING", description, expirationDate },
+        data: {
+          title,
+          inspectorId,
+          machineId: machineId || null,
+          status: status || "PENDING",
+          description,
+          expirationDate
+        },
       });
+
+      await logHistory(
+        inspectorId,
+        "Criou Tarefa",
+        task.id,
+        `Tarefa '${task.title}' criada.`
+      );
 
       return res.status(201).json({ msg: "Task created successfully", id: task.id });
     } catch (error) {
@@ -62,8 +110,8 @@ const tasksController = {
       const tasks = await prisma.task.findMany({
         where: {
           expirationDate: {
-            gte: now, 
-            lte: twentyFourHoursFromNow, 
+            gte: now,
+            lte: twentyFourHoursFromNow,
           },
         },
         include: {
@@ -75,7 +123,7 @@ const tasksController = {
           machine: true,
         },
         orderBy: {
-          expirationDate: 'asc', 
+          expirationDate: 'asc',
         },
       });
 
@@ -218,7 +266,7 @@ const tasksController = {
         include: {
           machine: true,
         },
-        orderBy: { updateDate: "desc" }, 
+        orderBy: { updateDate: "desc" },
       });
 
       return res.status(200).json(tasks);
