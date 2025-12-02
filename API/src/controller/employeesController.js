@@ -89,10 +89,7 @@ const employeesController = {
 
             if (employeeFind.status === "PENDING_SETUP") {
                 return res.status(403).json({
-                    firstToken,
-                    msg: `Complete your registration to access the system. First Token: ${firstToken}`,
-                    id: employeeFind.id,
-                    role: employeeFind.role
+                    msg: `Complete seu cadastro antes de fazer loggin.`,
                 });
             }
 
