@@ -89,7 +89,7 @@ const employeesController = {
 
             if (employeeFind.status === "PENDING_SETUP") {
                 return res.status(403).json({
-                    msg: `Complete seu cadastro antes de fazer loggin.`,
+                    msg: `Complete seu cadastro antes de fazer login.`,
                 });
             }
 
