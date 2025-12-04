@@ -172,6 +172,64 @@ const servicesOrdersController = {
         }
     },
 
+    startWork: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const userId = req.user?.id;
+
+            if (!userId) {
+                return res.status(401).json({ msg: "Unauthorized" });
+            }
+
+            const order = await prisma.servicesOrders.findUnique({
+                where: { id: Number(id) }
+            });
+
+            if (!order) {
+                return res.status(404).json({ msg: "Service order not found" });
+            }
+
+            if (!order.maintainerId) {
+                return res.status(403).json({ msg: "No maintainer assigned to this order" });
+            }
+
+            if (Number(order.maintainerId) !== Number(userId)) {
+                return res.status(403).json({ msg: "You are not the assigned maintainer for this order" });
+            }
+
+            if (order.status !== 'ASSIGNED') {
+                return res.status(400).json({ msg: "Order must be in ASSIGNED status to start" });
+            }
+
+            const { serviceNotes: sentNotes } = req.body;
+            const now = new Date();
+            const startedStamp = `Iniciado em: ${now.toLocaleString('pt-BR')}`;
+
+            // Se frontend enviou notes, use-os (acrescentando ao histórico), senão só adiciona timestamp
+            let newNotes = order.serviceNotes ? `${order.serviceNotes}\n${startedStamp}` : startedStamp;
+            if (sentNotes && sentNotes.trim().length) {
+                newNotes = order.serviceNotes ? `${order.serviceNotes}\n${sentNotes}` : sentNotes;
+                // garante que também haja o timestamp
+                newNotes = `${newNotes}\n${startedStamp}`;
+            }
+
+            const updatedOrder = await prisma.servicesOrders.update({
+                where: { id: Number(id) },
+                data: {
+                    status: 'IN_PROGRESS',
+                    serviceNotes: newNotes
+                }
+            });
+
+            await logHistory(userId, "Iniciou OS", updatedOrder.id, `Manutentor iniciou OS #${id}`);
+
+            return res.status(200).json(updatedOrder);
+        } catch (error) {
+            console.error("startWork error:", error);
+            return res.status(500).json({ msg: "Internal server error" });
+        }
+    },
+
     submitWork: async (req, res) => {
         try {
             const { id } = req.params;
@@ -270,65 +328,6 @@ const servicesOrdersController = {
             return res.status(500).json({
                 msg: "Internal server error"
             });
-        }
-    },
-
-    startWork: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const userId = req.user.id;
-            // busca OS
-            const order = await prisma.servicesOrders.findUnique({
-                where: { id: Number(id) }
-            });
-
-            if (!order) {
-                return res.status(404).json({ msg: "Service order not found" });
-            }
-
-            // só o manutentor atribuído pode iniciar
-            if (order.maintainerId !== Number(userId)) {
-                return res.status(403).json({ msg: "You are not the assigned maintainer for this order" });
-            }
-
-            // só iniciar quando estiver ASSIGNED
-            if (order.status !== 'ASSIGNED') {
-                return res.status(400).json({ msg: "Order must be in ASSIGNED status to start" });
-            }
-
-            // monta serviceNotes: usa serviceNotes enviado ou acrescenta timestamp
-            const { serviceNotes: sentNotes, startedAt } = req.body;
-            let newNotes = order.serviceNotes || "";
-            if (sentNotes) {
-                newNotes = (newNotes ? newNotes + "\n" : "") + sentNotes;
-            } else {
-                const now = startedAt ? new Date(startedAt) : new Date();
-                const ts = `Iniciado em: ${now.toLocaleString('pt-BR')}`;
-                newNotes = (newNotes ? newNotes + "\n" : "") + ts;
-            }
-
-            const dataToUpdate = {
-                status: 'IN_PROGRESS',
-                serviceNotes: newNotes
-            };
-            // opcional: atualiza startedAt se campo for enviado (verifique schema)
-            if (startedAt) {
-                try {
-                    dataToUpdate.startedAt = new Date(startedAt);
-                } catch (e) { /* ignore invalid date */ }
-            }
-
-            const updatedOrder = await prisma.servicesOrders.update({
-                where: { id: Number(id) },
-                data: dataToUpdate
-            });
-
-            await logHistory(userId, "Iniciou OS", updatedOrder.id, `Manutentor iniciou OS #${id}`);
-
-            return res.status(200).json(updatedOrder);
-        } catch (error) {
-            console.error("startWork error:", error);
-            return res.status(500).json({ msg: "Internal server error" });
         }
     },
 
