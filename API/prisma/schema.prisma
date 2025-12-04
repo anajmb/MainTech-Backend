@@ -130,7 +130,7 @@ model ServicesOrders {
   inspectorId    Int?
   inspectorName  String?
   maintainerName String?
-  serviceNotes   String?
+     String?
   materialsUsed  String?
 
   maintainerId Int?

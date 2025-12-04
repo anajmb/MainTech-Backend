@@ -34,6 +34,12 @@ router.patch('/assign/:id',
     servicesOrdersController.assignMaintainer
 );
 
+router.patch('/start/:id',
+    auth,
+    authorize(['MAINTAINER']),
+    servicesOrdersController.startWork
+);
+
 router.patch('/submit/:id',
     auth,
     authorize(['MAINTAINER']),
