@@ -1,4 +1,5 @@
-const prisma = require("../config/prisma");
+// A CORREÇÃO ESTÁ AQUI: Usamos a desestruturação para obter a propriedade 'prisma' do objeto exportado.
+const { prisma } = require("../config/prisma");
 const { Prisma } = require("@prisma/client");
 const bcrypt = require('bcrypt');
 
@@ -11,11 +12,12 @@ const adminsController = {
             const { name, email, role, cpf, phone, birthDate, password } = req.body;
 
             if (!name || !email || !role || !cpf || !phone || !birthDate || !password) {
-                return res.status(400).json({   
+                return res.status(400).json({
                     msg: "All fields are required"
                 });
             }
 
+            // Garante que o Prisma e Role estão definidos para acessar os valores permitidos
             const allowedRoles = Prisma && Prisma.Role ? Object.values(Prisma.Role) : ['INSPECTOR','MAINTAINER','ADMIN'];
             const roleNormalized = role.toUpperCase();
 
@@ -23,6 +25,7 @@ const adminsController = {
                 return res.status(400).json({ msg: `Invalid role. Allowed values: ${allowedRoles.join(', ')}` });
             }
 
+            // Linha 26 original, agora funcional: chama .create no modelo employees
             const adminCreated = await prisma.employees.create({
                 data: {
                     name,
@@ -196,16 +199,3 @@ const adminsController = {
 
 
 module.exports = adminsController;
-
-
-
-/*
-{
-"name": "Marcos",
-"cpf": "11122233345",
-"email": "marcos@example.com",
-"password": "senhaSegura123",
-"phone": "11 91234-5678",
-"birthDate": "2000-05-10",
-} 
-*/
