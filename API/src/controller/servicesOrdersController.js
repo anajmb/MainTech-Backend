@@ -1,6 +1,6 @@
 const { prisma } = require("../config/prisma");
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const { Prisma } = require("@prisma/client");
+const bcrypt = require('bcrypt');
 
 // Função auxiliar para registrar o histórico (já que você tem o model History)
 const logHistory = async (userId, action, entityId, description) => {
