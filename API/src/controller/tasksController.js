@@ -69,14 +69,19 @@ const tasksController = {
     }
   },
 
-  getAll: async (req, res) => {
+
+getAll: async (req, res) => {
     try {
-      const { status } = req.query;
+      const { status, inspectorId } = req.query;  // ← Adiciona inspectorId
 
       const whereClause = {};
 
       if (status) {
         whereClause.status = status;
+      }
+
+      if (inspectorId) {
+        whereClause.inspectorId = Number(inspectorId);  // ← Filtra por inspector
       }
 
       const tasks = await prisma.task.findMany({
@@ -88,7 +93,8 @@ const tasksController = {
             }
           },
           machine: true,
-        }
+        },
+        orderBy: { updateDate: "desc" }  // ← Ordena por data (mais recente primeiro)
       });
 
       return res.status(200).json(tasks);
@@ -101,6 +107,8 @@ const tasksController = {
       });
     }
   },
+
+
 
   getExpiringSoon: async (req, res) => {
     try {
